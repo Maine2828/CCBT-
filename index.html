@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Credit Card Benefits Tracker</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="CCBT">
+<meta name="application-name" content="CCBT">
+<meta name="theme-color" content="#F7F6F3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#141312" media="(prefers-color-scheme: dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" sizes="180x180" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAYAAAA9zQYyAAAC/UlEQVR42u3csU3DUBSGUW+BwiAIUTEALRIwRBZAzMQE7EODxAZQUSaOiZ337v9O8bWRfH2UwvZ90/XuauqgH0XU3BLAigIOsaJwQ6wo3CArCjbIioINs6JQg6wo2DArCjXMikINs6JQw6wo1DArCjXMikINs6JQw6wo1DArCjXQGga0wakcapgVhRpoxYM2KJVFDbSiQRuQSqMGWkBLFUAbjMqjBlpAS72DNhBFoAZaQEtAq6/2H6v8zm5/3x1oN3cEvKc2g/fUWl0r0CDPwl4CuTVsoGE+ivoczC1QAw3zwXavz6uAviRqoGE+jPmvQqiBhvk45mKogYZ5HnMh1EADDbQGxFwENdBAAy2ggRbQQAtooGHeCnMB1EBD7R9aQAMtoIEW0EADDbSg9i2HgAZavocGWjZWgIbaTqGgtvUt53I4l0NOTgJazrYDWkO1Gejvr0/paEALaKAFNNACGmgBLaBrg/ZoabyAFtBAC2igBTTQAhpooIEW0EALaKAFNNACGmiggRbQQAtooAX00ou4u73RYAEtoIEW0EALaKAFNNBAAy2ggRbQQAtooAU00EADLaCBFtBAC2igBbSABlpAAy2grWDJChbQAlpAAy2ggRbQQAtooAW0gM4F/fD+1jwIgQZaQAMNNNBAAw000EADLaCBFtBAAw000EB7UyiggRbQQAtoAQ20gO4b9MvTY1xAAw000EADDTTQQAMNNNBAAw000EAD7Tm0gAZaQAMtoN1goIEW0EALaKAFNNACWkADLaCBFtBAC2igBbSALg5aAlpAAy2ggVYA6AlohYCegBbQUqcBrUzQUKs8ZqAFtFQFNNQqjRloAS1VAg21ymIGWkOAhlolMQOtYUBDrXKY50BDrVKYgdZwoKFWGcyngoZaJTAvAQ21use8FDTU6hrzf0BDrW4x/xc01OoS8zmgoVZ3mM8FDbW6wrwGaKjVDea1QIOt5pC3AA21mmLeAjTYagJ5a9Bg66KQLwUabm2OuBVouCGOBQ04wJv0C9FT2jUmX6hHAAAAAElFTkSuQmCC">
+<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Card%20Benefits%20Tracker%22%2C%22short_name%22%3A%22Benefits%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23F7F6F3%22%2C%22theme_color%22%3A%22%231A1917%22%2C%22start_url%22%3A%22.%22%7D">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:#F7F6F3; --surface:#FFFFFF; --surface2:#F0EEE9;
+  --border:rgba(0,0,0,0.09); --border-med:rgba(0,0,0,0.16);
+  --text:#1A1917; --text-2:#6B6760; --text-3:#A8A49E;
+  --green:#1A7A4A; --green-bg:#E8F5EE; --green-border:rgba(26,122,74,0.25);
+  --radius:10px; --radius-sm:6px;
+  --safe-top:env(safe-area-inset-top,0px); --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#141312; --surface:#1E1D1B; --surface2:#272522;
+  --border:rgba(255,255,255,0.08); --border-med:rgba(255,255,255,0.14);
+  --text:#F0EDE8; --text-2:#9A9690; --text-3:#5C5A55;
+  --green:#4CAF7D; --green-bg:rgba(76,175,125,0.12); --green-border:rgba(76,175,125,0.3);
+}}
+html{height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;font-size:16px;line-height:1.55;padding-top:var(--safe-top);padding-bottom:var(--safe-bottom);-webkit-text-size-adjust:100%}
+.shell{max-width:820px;margin:0 auto;padding:2rem 1.25rem 4rem}
+
+/* install banner */
+.install-banner{display:none;align-items:center;gap:10px;background:var(--surface);border:0.5px solid var(--border-med);border-radius:var(--radius);padding:.75rem 1rem;margin-bottom:1.25rem;font-size:13px}
+.install-banner.visible{display:flex}
+.install-banner-text{flex:1;color:var(--text-2);line-height:1.4}
+.install-banner-text strong{color:var(--text);font-weight:600}
+.install-banner-close{background:none;border:none;cursor:pointer;color:var(--text-3);font-size:18px;padding:2px 4px;font-family:inherit}
+
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem}
+.header-left h1{font-size:23px;font-weight:600;letter-spacing:-0.3px}
+.header-left p{font-size:14px;color:var(--text-2);margin-top:2px}
+.year-pill{font-size:13px;font-weight:500;color:var(--text-2);background:var(--surface);border:0.5px solid var(--border-med);border-radius:20px;padding:5px 12px}
+
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.75rem}
+.sum-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:1rem 1.1rem}
+.sum-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:4px}
+.sum-val{font-size:26px;font-weight:600;letter-spacing:-0.5px}
+.sum-val.green{color:var(--green)}
+.sum-sub{font-size:12px;color:var(--text-2);margin-top:3px}
+
+.tabs{display:flex;gap:6px;margin-bottom:1.5rem;flex-wrap:wrap;align-items:center}
+.tab{display:flex;align-items:center;gap:7px;padding:7px 14px;border-radius:20px;border:0.5px solid var(--border-med);font-size:14px;font-weight:500;cursor:pointer;background:var(--surface);color:var(--text-2);transition:all .15s;font-family:inherit;-webkit-tap-highlight-color:transparent}
+.tab:hover{color:var(--text)}
+.tab.active{background:var(--text);color:var(--bg);border-color:var(--text)}
+.tab-add{display:flex;align-items:center;gap:5px;padding:7px 13px;border-radius:20px;border:0.5px dashed var(--border-med);font-size:14px;font-weight:500;cursor:pointer;background:transparent;color:var(--text-3);transition:all .15s;font-family:inherit;-webkit-tap-highlight-color:transparent}
+.tab-add:hover{color:var(--text);border-color:var(--border-med)}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+.section-head{font-size:15px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-3);margin:1.5rem 0 .6rem;padding-bottom:.4rem;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.section-head-actions{display:flex;gap:8px}
+.btn-ghost{font-size:12px;color:var(--text-3);background:none;border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:3px 9px;cursor:pointer;font-family:inherit;transition:all .15s}
+.btn-ghost:hover{color:var(--text);border-color:var(--border-med)}
+.btn-danger:hover{color:#c0392b;border-color:rgba(192,57,43,0.3)}
+
+.benefit{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:1rem 1.1rem;margin-bottom:8px}
+.benefit:hover{border-color:var(--border-med)}
+.b-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.b-left{flex:1;min-width:0}
+.b-name{font-size:16px;font-weight:600}
+.b-desc{font-size:13px;color:var(--text-2);margin-top:2px;line-height:1.4}
+.b-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0}
+.b-amount{font-size:18px;font-weight:600}
+.b-amount.muted{font-size:13px;color:var(--text-3);font-style:italic;font-weight:400}
+.period-pill{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--text-3);background:var(--surface2);border-radius:4px;padding:2px 7px}
+
+.custom-row{display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:0.5px solid var(--border);flex-wrap:wrap}
+.custom-lbl{font-size:13px;color:var(--text-2);flex-shrink:0}
+.custom-input-wrap{display:flex;align-items:center;border:0.5px solid var(--border-med);border-radius:var(--radius-sm);overflow:hidden}
+.custom-prefix{padding:5px 8px;font-size:14px;color:var(--text-2);background:var(--surface2);border-right:0.5px solid var(--border)}
+.custom-input{border:none;outline:none;background:transparent;font-size:14px;font-weight:600;color:var(--text);width:80px;padding:5px 8px;font-family:inherit}
+.custom-hint{font-size:12px;color:var(--text-3);font-style:italic}
+
+.b-progress{margin-top:10px}
+.progress-track{height:4px;background:var(--surface2);border-radius:2px;overflow:hidden;margin-bottom:8px}
+.progress-fill{height:100%;border-radius:2px;transition:width .35s ease}
+.periods{display:flex;gap:6px;flex-wrap:wrap}
+.period-btn{display:flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;border:0.5px solid var(--border-med);font-size:13px;font-weight:500;cursor:pointer;background:var(--surface2);color:var(--text-2);transition:all .15s;font-family:inherit;-webkit-tap-highlight-color:transparent}
+.period-btn:hover{color:var(--text)}
+.period-btn.used{background:var(--green-bg);color:var(--green);border-color:var(--green-border)}
+.card-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:2px 8px;border-radius:4px;margin-bottom:7px}
+
+/* ── Earning rates dropdown ── */
+.rates-toggle{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;color:var(--text-3);cursor:pointer;padding:5px 0 6px;background:none;border:none;font-family:inherit;-webkit-tap-highlight-color:transparent;transition:color .15s}
+.rates-toggle:hover{color:var(--text-2)}
+.rates-toggle svg{transition:transform .2s;flex-shrink:0}
+.rates-toggle.open svg{transform:rotate(180deg)}
+.rates-panel{display:none;margin-bottom:10px;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.rates-panel.open{display:block}
+.rates-grid{display:grid;grid-template-columns:auto 1fr;gap:0 14px;padding:.75rem 1rem}
+.rate-val{font-size:14px;font-weight:700;white-space:nowrap;padding:3px 0}
+.rate-cat{font-size:13px;color:var(--text-2);line-height:1.35;padding:3px 0;border-bottom:0.5px solid var(--border)}
+.rate-val:last-of-type,.rate-cat:last-of-type{border-bottom:none}
+
+/* ── Card perks dropdown ── */
+.perks-toggle{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;color:var(--text-3);cursor:pointer;padding:5px 0 6px;background:none;border:none;font-family:inherit;-webkit-tap-highlight-color:transparent;transition:color .15s}
+.perks-toggle:hover{color:var(--text-2)}
+.perks-toggle svg{transition:transform .2s;flex-shrink:0}
+.perks-toggle.open svg{transform:rotate(180deg)}
+.perks-panel{display:none;margin-bottom:10px;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.perks-panel.open{display:block}
+.perks-section{padding:.75rem 1rem .5rem;border-bottom:0.5px solid var(--border)}
+.perks-section:last-child{border-bottom:none;padding-bottom:.8rem}
+.perks-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:6px}
+.perks-list{list-style:none;display:flex;flex-direction:column;gap:5px}
+.perks-list li{font-size:13px;color:var(--text-2);line-height:1.4;padding-left:14px;position:relative}
+.perks-list li::before{content:"·";position:absolute;left:3px;font-weight:700;color:var(--text-3)}
+.toggles-row{display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+
+/* ── Points tracker ── */
+.pts-toggle{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;color:var(--text-3);cursor:pointer;padding:5px 0 6px;background:none;border:none;font-family:inherit;-webkit-tap-highlight-color:transparent;transition:color .15s}
+.pts-toggle:hover{color:var(--text-2)}
+.pts-toggle svg{transition:transform .2s;flex-shrink:0}
+.pts-toggle.open svg{transform:rotate(180deg)}
+.pts-panel{display:none;margin-bottom:10px;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius)}
+.pts-panel.open{display:block}
+.pts-panel-inner{padding:.85rem 1rem}
+.pts-fields{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.pts-field{}
+.pts-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-3);margin-bottom:5px}
+.pts-input-wrap{display:flex;align-items:center;border:0.5px solid var(--border-med);border-radius:var(--radius-sm);overflow:hidden;background:var(--surface)}
+.pts-prefix{padding:6px 7px;font-size:12px;color:var(--text-3);background:var(--surface2);border-right:0.5px solid var(--border);white-space:nowrap}
+.pts-input{border:none;outline:none;background:transparent;font-size:14px;font-weight:600;color:var(--text);width:100%;padding:6px 8px;font-family:inherit;min-width:0}
+.pts-input:focus{outline:none}
+.pts-summary{display:flex;align-items:center;gap:6px;margin-top:10px;padding-top:10px;border-top:0.5px solid var(--border);font-size:13px;color:var(--text-2)}
+.pts-summary strong{color:var(--text);font-weight:600}
+.pts-summary .pts-chip{display:inline-block;font-size:12px;font-weight:600;padding:2px 8px;border-radius:4px;margin-left:4px}
+@media(max-width:540px){.pts-fields{grid-template-columns:1fr}}
+
+.footer{margin-top:2.5rem;padding-top:1.5rem;border-top:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.footer-note{font-size:12px;color:var(--text-3);max-width:360px;line-height:1.5}
+.footer-fees{display:flex;gap:1.5rem}
+.fee-item{text-align:right}
+.fee-num{font-size:16px;font-weight:600}
+.fee-lbl{font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;margin-top:1px}
+.reset-btn{font-size:13px;color:var(--text-3);background:none;border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:5px 10px;cursor:pointer;font-family:inherit;transition:all .15s}
+.reset-btn:hover{color:#c0392b;border-color:rgba(192,57,43,0.3)}
+
+/* ── Modal ── */
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:100;align-items:center;justify-content:center;padding:1rem}
+.modal-backdrop.open{display:flex}
+.modal{background:var(--surface);border-radius:14px;width:100%;max-width:520px;max-height:90dvh;overflow-y:auto;padding:1.5rem}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}
+.modal-title{font-size:16px;font-weight:600}
+.modal-close{background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-3);font-family:inherit;padding:2px 6px;line-height:1}
+.modal-section{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin:1.25rem 0 .5rem}
+.modal-section:first-of-type{margin-top:0}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12px;color:var(--text-2);margin-bottom:4px}
+.field input,.field select{width:100%;padding:8px 10px;border:0.5px solid var(--border-med);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-size:13px;font-family:inherit;outline:none}
+.field input:focus,.field select:focus{border-color:#378ADD}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.color-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.color-swatch{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .15s;flex-shrink:0}
+.color-swatch.selected{border-color:var(--text);transform:scale(1.15)}
+
+/* benefit rows in modal */
+.benefit-rows{margin-top:.5rem}
+.benefit-row{background:var(--surface2);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:8px;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:start}
+.benefit-row-fields{display:grid;grid-template-columns:1fr 90px;gap:8px;margin-top:6px}
+.benefit-row-top{display:flex;align-items:center;justify-content:space-between}
+.benefit-row-num{font-size:11px;font-weight:600;color:var(--text-3)}
+.remove-benefit{background:none;border:none;cursor:pointer;color:var(--text-3);font-size:16px;padding:0 2px;font-family:inherit;line-height:1}
+.remove-benefit:hover{color:#c0392b}
+.benefit-row input,.benefit-row select{width:100%;padding:6px 8px;border:0.5px solid var(--border-med);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-size:12px;font-family:inherit;outline:none}
+.benefit-row input:focus,.benefit-row select:focus{border-color:#378ADD}
+.add-benefit-btn{display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:var(--radius-sm);border:0.5px dashed var(--border-med);font-size:12px;cursor:pointer;background:transparent;color:var(--text-3);font-family:inherit;width:100%;justify-content:center;transition:all .15s;margin-top:4px}
+.add-benefit-btn:hover{color:var(--text);border-color:var(--border-med)}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:1.5rem;padding-top:1rem;border-top:0.5px solid var(--border)}
+.btn-primary{padding:8px 20px;border-radius:var(--radius-sm);border:none;background:var(--text);color:var(--bg);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:opacity .15s}
+.btn-primary:hover{opacity:.85}
+.btn-secondary{padding:8px 16px;border-radius:var(--radius-sm);border:0.5px solid var(--border-med);background:transparent;color:var(--text-2);font-size:13px;cursor:pointer;font-family:inherit;transition:all .15s}
+.btn-secondary:hover{color:var(--text)}
+
+/* ── AI lookup ── */
+.ai-lookup-box{background:var(--surface2);border:0.5px solid var(--border-med);border-radius:var(--radius);padding:1.1rem 1.1rem 1rem;margin-bottom:1rem}
+.ai-lookup-icon{font-size:20px;margin-bottom:6px}
+.ai-lookup-desc{font-size:13px;color:var(--text-2);line-height:1.45;margin-bottom:12px}
+.ai-search-row{display:flex;gap:8px;align-items:center}
+.ai-search-row input{flex:1;padding:9px 11px;border:0.5px solid var(--border-med);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-size:14px;font-family:inherit;outline:none}
+.ai-search-row input:focus{border-color:#378ADD}
+.lookup-status{margin-top:10px;font-size:12px;color:var(--text-2);min-height:18px;display:flex;align-items:center;gap:6px}
+.lookup-status.error{color:#c0392b}
+.lookup-status.success{color:var(--green)}
+.spinner{width:13px;height:13px;border:2px solid var(--border-med);border-top-color:var(--text-2);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.lookup-divider{text-align:center;position:relative;margin:.85rem 0 .6rem}
+.lookup-divider::before{content:'';position:absolute;left:0;right:0;top:50%;height:0.5px;background:var(--border)}
+.lookup-divider span{position:relative;background:var(--surface);padding:0 10px;font-size:11px;color:var(--text-3)}
+.btn-manual{background:none;border:none;color:var(--text-3);font-size:13px;cursor:pointer;font-family:inherit;padding:4px 0;transition:color .15s}
+.btn-manual:hover{color:var(--text-2)}
+
+@media(max-width:540px){
+  /* Layout */
+  .shell{padding:1rem .875rem 3rem}
+  .header{margin-bottom:1.25rem;gap:8px}
+  .header-left h1{font-size:18px}
+  .header-left p{font-size:12px}
+  .year-pill{font-size:11px;padding:4px 9px;white-space:nowrap}
+
+  /* Summary: 2x2 grid, smaller values */
+  .summary{grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1.25rem}
+  .sum-card{padding:.75rem .875rem}
+  .sum-val{font-size:20px}
+  .sum-label{font-size:10px}
+  .sum-sub{font-size:11px}
+
+  /* Tabs: scrollable single row */
+  .tabs{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;gap:6px;margin-bottom:1.25rem;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab,.tab-add{white-space:nowrap;flex-shrink:0;padding:6px 12px;font-size:13px}
+
+  /* Section head */
+  .section-head{font-size:13px}
+
+  /* Benefit cards */
+  .benefit{padding:.875rem 1rem}
+  .b-name{font-size:15px}
+  .b-desc{font-size:12px}
+  .b-amount{font-size:16px}
+  .b-right{min-width:60px}
+
+  /* Period buttons: smaller & tighter for monthly lists */
+  .period-btn{padding:4px 9px;font-size:11px;gap:4px}
+  .periods{gap:5px}
+
+  /* Rates & points toggles */
+  .rates-toggle,.pts-toggle,.perks-toggle{font-size:12px}
+  .rates-grid{padding:.65rem .875rem}
+  .rate-val{font-size:13px}
+  .rate-cat{font-size:12px}
+
+  /* Points tracker: stack fields vertically */
+  .pts-fields{grid-template-columns:1fr}
+  .pts-input{font-size:13px}
+  .pts-prefix{font-size:11px}
+
+  /* Custom value row */
+  .custom-row{gap:6px}
+  .custom-lbl{font-size:12px}
+  .custom-hint{display:none}
+
+  /* Footer */
+  .footer{flex-direction:column;align-items:flex-start;gap:10px}
+  .footer-fees{gap:1rem}
+  .fee-num{font-size:14px}
+
+  /* Modal full-screen on iPhone */
+  .modal-backdrop{padding:.5rem .5rem 0}
+  .modal{border-radius:14px 14px 0 0;max-height:92dvh;padding:1.25rem 1rem}
+  .field-row{grid-template-columns:1fr}
+  .benefit-row-fields{grid-template-columns:1fr}
+
+  /* Add card modal benefit rows */
+  .benefit-row{padding:8px 10px}
+}
+
+/* Extra small iPhones (SE etc) */
+@media(max-width:375px){
+  .shell{padding:.875rem .75rem 2.5rem}
+  .header-left h1{font-size:16px}
+  .sum-val{font-size:18px}
+  .tabs{gap:5px}
+  .tab,.tab-add{padding:5px 10px;font-size:12px}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="install-banner" id="installBanner">
+    <span style="font-size:22px;flex-shrink:0">📲</span>
+    <span class="install-banner-text" id="installText"></span>
+    <button class="install-banner-close" onclick="dismissBanner()">×</button>
+  </div>
+
+  <div class="header">
+    <div class="header-left">
+      <h1>Credit Card Benefits Tracker</h1>
+      <p id="cardSubtitle">Hilton Aspire · Chase Sapphire Reserve · Amex Platinum</p>
+    </div>
+    <span class="year-pill">2026–2027</span>
+  </div>
+
+  <div class="summary" id="summary"></div>
+  <div class="tabs" id="tabs"></div>
+  <div id="benefits"></div>
+
+  <div class="footer">
+    <p class="footer-note">Mark each credit period as used when you redeem it. The free night reward value is estimated — update it with your actual hotel rate.</p>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="footer-fees" id="footer-fees"></div>
+      <button class="reset-btn" onclick="resetAll()">Reset all</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Card Modal -->
+<div class="modal-backdrop" id="modalBackdrop" onclick="handleBackdropClick(event)">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modalTitle">Add a card</span>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+
+    <!-- Step 1: AI Lookup -->
+    <div id="stepLookup">
+      <div class="ai-lookup-box">
+        <div class="ai-lookup-icon">✦</div>
+        <div class="ai-lookup-desc">Type a card name and let AI fill in the benefits, earning rates, perks and annual fee automatically.</div>
+        <div class="ai-search-row">
+          <input type="text" id="aiCardName" placeholder="e.g. Chase Sapphire Preferred" autocomplete="off"
+            onkeydown="if(event.key==='Enter')lookupCard()" />
+          <button class="btn-primary" id="lookupBtn" onclick="lookupCard()">Look up</button>
+        </div>
+        <div id="lookupStatus" class="lookup-status"></div>
+      </div>
+      <div class="lookup-divider"><span>or add manually</span></div>
+      <button class="btn-manual" onclick="showManualStep()">Fill in details manually →</button>
+    </div>
+
+    <!-- Step 2: Review / Edit -->
+    <div id="stepEdit" style="display:none">
+      <div class="modal-section">Card details</div>
+      <div class="field-row">
+        <div class="field">
+          <label>Card name</label>
+          <input type="text" id="mCardName" placeholder="e.g. Chase Sapphire Preferred" />
+        </div>
+        <div class="field">
+          <label>Short name (for tab)</label>
+          <input type="text" id="mCardShort" placeholder="e.g. Sapphire Preferred" />
+        </div>
+      </div>
+      <div class="field">
+        <label>Annual fee ($)</label>
+        <input type="number" id="mCardFee" placeholder="e.g. 95" min="0" />
+      </div>
+      <div class="field">
+        <label>Color</label>
+        <div class="color-row" id="colorRow"></div>
+      </div>
+
+      <div class="modal-section">Benefits</div>
+      <div class="benefit-rows" id="benefitRows"></div>
+      <button class="add-benefit-btn" onclick="addBenefitRow()">+ Add benefit</button>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="showLookupStep()">← Back</button>
+        <button class="btn-primary" onclick="saveCard()">Save card</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── PWA install hint ─────────────────────────────────────────────────────────
+(function(){
+  const banner=document.getElementById('installBanner');
+  const txt=document.getElementById('installText');
+  if(sessionStorage.getItem('install_dismissed'))return;
+  const isStandalone=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+  if(isStandalone)return;
+  const ua=navigator.userAgent;
+  const isIOS=/iPad|iPhone|iPod/.test(ua)&&!window.MSStream;
+  const isMac=/Macintosh/.test(ua)&&navigator.maxTouchPoints===0;
+  const isSafari=/Safari/.test(ua)&&!/Chrome|CriOS|FxiOS/.test(ua);
+  if(isIOS&&isSafari){txt.innerHTML='<strong>Add to Home Screen:</strong> tap the Share button ⎙ then "Add to Home Screen".';banner.classList.add('visible')}
+  else if(isMac&&isSafari){txt.innerHTML='<strong>Add to Dock:</strong> in Safari go to File → "Add to Dock…"';banner.classList.add('visible')}
+})();
+function dismissBanner(){document.getElementById('installBanner').classList.remove('visible');sessionStorage.setItem('install_dismissed','1')}
+
+// ── Built-in cards ───────────────────────────────────────────────────────────
+const BUILTIN_CARDS = {
+  hilton:{name:"Hilton Honors Aspire",short:"Aspire",color:"#1A6EBD",bg:"#EBF3FC",fee:550,builtin:true,benefits:[
+    {id:"h1",name:"Hilton Resort Credit",desc:"Eligible charges at participating Hilton Resorts",amount:200,period:"semester",periods:["Jan–Jun 2026","Jul–Dec 2026","Jan–Jun 2027","Jul–Dec 2027"]},
+    {id:"h2",name:"Airline Fee Credit",desc:"Eligible flight purchases on one selected airline ($50/quarter)",amount:50,period:"quarterly",periods:["Q1 2026","Q2 2026","Q3 2026","Q4 2026","Q1 2027","Q2 2027","Q3 2027","Q4 2027"]},
+    {id:"h3",name:"Waldorf / Conrad Property Credit",desc:"$100 per eligible 2-night stay at Waldorf Astoria or Conrad",amount:100,period:"per stay",periods:["Stay 1 (2026)","Stay 2 (2026)","Stay 1 (2027)","Stay 2 (2027)"]},
+    {id:"h4",name:"Free Night Reward",desc:"Valid at almost any Hilton property — enter the value of your redemption",amount:null,customizable:true,period:"annual",periods:["2026","2027"]},
+    {id:"h5",name:"CLEAR+ Membership",desc:"Complimentary annual CLEAR+ membership (~$209 value)",amount:209,period:"annual",periods:["2026","2027"]},
+  ]},
+  chase:{name:"Chase Sapphire Reserve",short:"Sapphire Reserve",color:"#117E48",bg:"#E8F5EE",fee:795,builtin:true,benefits:[
+    {id:"c1",name:"Annual Travel Credit",desc:"Automatic statement credit on any travel purchase",amount:300,period:"annual",periods:["2026","2027"]},
+    {id:"c2",name:"The Edit Hotel Credit",desc:"Prepaid stays at The Edit by Chase Travel luxury properties ($250/semester)",amount:250,period:"semester",periods:["Jan–Jun 2026","Jul–Dec 2026","Jan–Jun 2027","Jul–Dec 2027"]},
+    {id:"c3",name:"Select Hotels Credit",desc:"IHG, Omni, Virgin Hotels & more — 2026 only (2-night min required)",amount:250,period:"annual",periods:["2026"]},
+    {id:"c4",name:"Dining Credit",desc:"Sapphire Reserve Exclusive Tables via OpenTable ($150/semester)",amount:150,period:"semester",periods:["Jan–Jun 2026","Jul–Dec 2026","Jan–Jun 2027","Jul–Dec 2027"]},
+    {id:"c5",name:"StubHub / viagogo Credit",desc:"Ticket purchases on StubHub.com and viagogo.com — activation required ($150/semester, through Dec 2027)",amount:150,period:"semester",periods:["Jan–Jun 2026","Jul–Dec 2026","Jan–Jun 2027","Jul–Dec 2027"]},
+    {id:"c6",name:"Lyft Credit",desc:"$10/month in-app credit on Lyft rides (through Sept 30, 2027)",amount:10,period:"monthly",periods:["Jan 26","Feb 26","Mar 26","Apr 26","May 26","Jun 26","Jul 26","Aug 26","Sep 26","Oct 26","Nov 26","Dec 26","Jan 27","Feb 27","Mar 27","Apr 27","May 27","Jun 27","Jul 27","Aug 27","Sep 27"]},
+    {id:"c7",name:"Peloton Credit",desc:"$10/month on eligible Peloton memberships — activation required (through Dec 2027)",amount:10,period:"monthly",periods:["Jan 26","Feb 26","Mar 26","Apr 26","May 26","Jun 26","Jul 26","Aug 26","Sep 26","Oct 26","Nov 26","Dec 26","Jan 27","Feb 27","Mar 27","Apr 27","May 27","Jun 27","Jul 27","Aug 27","Sep 27","Oct 27","Nov 27","Dec 27"]},
+    {id:"c8",name:"DoorDash DashPass",desc:"Complimentary DashPass + $5 off 1 food & $10 off 2 non-restaurant orders/month (through Dec 2027)",amount:15,period:"monthly",periods:["Jan 26","Feb 26","Mar 26","Apr 26","May 26","Jun 26","Jul 26","Aug 26","Sep 26","Oct 26","Nov 26","Dec 26","Jan 27","Feb 27","Mar 27","Apr 27","May 27","Jun 27","Jul 27","Aug 27","Sep 27","Oct 27","Nov 27","Dec 27"]},
+    {id:"c9",name:"Global Entry / TSA PreCheck",desc:"Application fee credit once every 4 years",amount:120,period:"4-year",periods:["2024–2028"]},
+    {id:"c10",name:"Apple TV+ & Apple Music",desc:"Complimentary subscriptions through Jun 22, 2027 (~$288/yr value)",amount:288,period:"annual",periods:["2026","2027"]},
+  ]},
+  amex:{name:"Amex Platinum",short:"Platinum",color:"#6B4FC8",bg:"#F0ECFB",fee:895,builtin:true,benefits:[
+    {id:"a1",name:"Airline Incidental Credit",desc:"Fee credit on one selected qualifying airline",amount:200,period:"annual",periods:["2026","2027"]},
+    {id:"a2",name:"Fine Hotels + Resorts / Hotel Collection",desc:"Prepaid bookings via Amex Travel ($300/semester)",amount:300,period:"semester",periods:["Jan–Jun 2026","Jul–Dec 2026","Jan–Jun 2027","Jul–Dec 2027"]},
+    {id:"a3",name:"Uber Cash",desc:"$15/month credit via Uber app ($20 in December)",amount:15,period:"monthly",periods:["Jan 26","Feb 26","Mar 26","Apr 26","May 26","Jun 26","Jul 26","Aug 26","Sep 26","Oct 26","Nov 26","Dec 26","Jan 27","Feb 27","Mar 27","Apr 27","May 27","Jun 27","Jul 27","Aug 27","Sep 27","Oct 27","Nov 27","Dec 27"]},
+    {id:"a3b",name:"Uber Cash (December bonus)",desc:"Extra $5 Uber Cash bonus in December (total $20)",amount:5,period:"monthly",periods:["Dec 26","Dec 27"]},
+    {id:"a4",name:"Resy Dining Credit",desc:"Eligible dining purchases via Resy ($200/semester)",amount:200,period:"semester",periods:["Jan–Jun 2026","Jul–Dec 2026","Jan–Jun 2027","Jul–Dec 2027"]},
+    {id:"a5",name:"Digital Entertainment Credit",desc:"Disney+, Hulu, ESPN+, NYT, Peacock & more ($25/month)",amount:25,period:"monthly",periods:["Jan 26","Feb 26","Mar 26","Apr 26","May 26","Jun 26","Jul 26","Aug 26","Sep 26","Oct 26","Nov 26","Dec 26","Jan 27","Feb 27","Mar 27","Apr 27","May 27","Jun 27","Jul 27","Aug 27","Sep 27","Oct 27","Nov 27","Dec 27"]},
+    {id:"a6",name:"Equinox Credit",desc:"Equinox membership or Equinox+ digital subscription ($25/month)",amount:25,period:"monthly",periods:["Jan 26","Feb 26","Mar 26","Apr 26","May 26","Jun 26","Jul 26","Aug 26","Sep 26","Oct 26","Nov 26","Dec 26","Jan 27","Feb 27","Mar 27","Apr 27","May 27","Jun 27","Jul 27","Aug 27","Sep 27","Oct 27","Nov 27","Dec 27"]},
+    {id:"a7",name:"lululemon Credit",desc:"Eligible lululemon purchases ($25/month)",amount:25,period:"monthly",periods:["Jan 26","Feb 26","Mar 26","Apr 26","May 26","Jun 26","Jul 26","Aug 26","Sep 26","Oct 26","Nov 26","Dec 26","Jan 27","Feb 27","Mar 27","Apr 27","May 27","Jun 27","Jul 27","Aug 27","Sep 27","Oct 27","Nov 27","Dec 27"]},
+    {id:"a8",name:"Walmart+ Credit",desc:"Monthly Walmart+ membership fee statement credit (~$12.95/month)",amount:13,period:"monthly",periods:["Jan 26","Feb 26","Mar 26","Apr 26","May 26","Jun 26","Jul 26","Aug 26","Sep 26","Oct 26","Nov 26","Dec 26","Jan 27","Feb 27","Mar 27","Apr 27","May 27","Jun 27","Jul 27","Aug 27","Sep 27","Oct 27","Nov 27","Dec 27"]},
+    {id:"a9",name:"Oura Ring Credit",desc:"Eligible Oura Ring hardware or membership purchases ($200/year — use when needed)",amount:200,period:"annual",periods:["2026","2027"]},
+    {id:"a10",name:"CLEAR+ Membership",desc:"Complimentary annual CLEAR+ membership (~$209 value)",amount:209,period:"annual",periods:["2026","2027"]},
+    {id:"a11",name:"Global Entry / TSA PreCheck",desc:"Application fee credit every 4 years",amount:120,period:"4-year",periods:["2024–2028"]},
+  ]}
+};
+
+// ── Earning rates per card ───────────────────────────────────────────────────
+const EARNING_RATES = {
+  hilton:[
+    {val:"14x",cat:"points at Hilton hotels & resorts"},
+    {val:"7x", cat:"points on flights booked directly with airlines"},
+    {val:"7x", cat:"points at US restaurants"},
+    {val:"3x", cat:"points on all other purchases"},
+  ],
+  chase:[
+    {val:"8x", cat:"points via Chase Travel (The Edit & portal bookings)"},
+    {val:"4x", cat:"points on flights & hotels booked directly"},
+    {val:"3x", cat:"points on dining worldwide"},
+    {val:"1x", cat:"point on all other purchases"},
+  ],
+  amex:[
+    {val:"5x", cat:"Membership Rewards points on flights booked directly (up to $500k/yr)"},
+    {val:"5x", cat:"points on prepaid hotels via Amex Travel"},
+    {val:"1x", cat:"point on all other purchases"},
+  ],
+};
+
+let openRates = {}; // tracks which cards have rates panel open
+function toggleRates(key){
+  openRates[key]=!openRates[key];
+  const toggle=document.getElementById(`rt_${key}`);
+  const panel =document.getElementById(`rp_${key}`);
+  if(toggle)toggle.classList.toggle('open',!!openRates[key]);
+  if(panel) panel.classList.toggle('open',!!openRates[key]);
+}
+
+// ── Card perks (non-credit benefits) ────────────────────────────────────────
+const CARD_PERKS = {
+  hilton:{
+    sections:[
+      {title:"Hotel status & stays",items:[
+        "Automatic Hilton Honors Diamond status (top tier)",
+        "Complimentary room upgrades, including premium rooms",
+        "Daily continental breakfast for you and one guest",
+        "Executive lounge access at properties with a lounge",
+        "5th night free on all award stays",
+        "48-hour room guarantee (must request in advance)",
+        "Late checkout upon request",
+      ]},
+      {title:"Free nights",items:[
+        "1 Free Night Reward annually upon card renewal",
+        "2nd Free Night after $30,000 in annual spend",
+        "3rd Free Night after $60,000 in annual spend",
+        "Nights valid at virtually all Hilton properties worldwide",
+      ]},
+      {title:"Travel & lifestyle",items:[
+        "No foreign transaction fees",
+        "National Car Rental Emerald Club Executive status",
+        "Complimentary CLEAR+ membership",
+        "Priority Pass lounge access — not included (upgrade to Aspire Business for this)",
+      ]},
+      {title:"Protections",items:[
+        "Baggage insurance plan",
+        "Car rental loss & damage insurance",
+        "Purchase protection",
+        "Extended warranty protection",
+      ]},
+    ]
+  },
+  chase:{
+    sections:[
+      {title:"Airport lounges",items:[
+        "Chase Sapphire Lounge by The Club — 10+ locations worldwide",
+        "Priority Pass Select — 1,300+ airport lounges globally",
+        "Air Canada Maple Leaf Lounges",
+        "Unlimited guest access at Chase Sapphire Lounges",
+      ]},
+      {title:"Hotel benefits",items:[
+        "The Edit by Chase Travel — room upgrade, $100 property credit, daily breakfast for 2, early check-in/late checkout",
+        "IHG One Rewards Platinum Elite status",
+        "Avis Preferred Plus status",
+        "Hertz Five Star status",
+      ]},
+      {title:"Travel perks",items:[
+        "No foreign transaction fees",
+        "Global Entry or TSA PreCheck credit ($120 every 4 years)",
+        "Trip delay reimbursement — up to $500/person after 6-hour delay",
+        "Trip cancellation / interruption insurance — up to $10,000/person",
+        "Lost luggage reimbursement — up to $3,000/passenger",
+        "Baggage delay insurance — $100/day for up to 5 days",
+        "Primary rental car collision damage waiver",
+        "Emergency evacuation & transportation — up to $100,000",
+      ]},
+      {title:"Dining & lifestyle",items:[
+        "Sapphire Reserve Exclusive Tables — priority reservations at top restaurants",
+        "DoorDash DashPass complimentary membership",
+        "Chase Offers — exclusive merchant discounts",
+        "Complimentary Apple TV+ & Apple Music (through Jun 2027)",
+      ]},
+      {title:"Points & redemption",items:[
+        "Points transfer to 14+ airline & hotel partners at 1:1 ratio",
+        "1.5x points value when booking through Chase Travel",
+        "No blackout dates on award travel",
+        "Points don't expire as long as account is open",
+      ]},
+    ]
+  },
+  amex:{
+    sections:[
+      {title:"Airport lounges",items:[
+        "Amex Centurion Lounges — 40+ locations, unlimited visits",
+        "Priority Pass Select — 1,300+ lounges globally",
+        "Delta Sky Club — 10 complimentary visits per year",
+        "Escape Lounges, Airspace Lounges & Plaza Premium Lounges",
+        "Guest access: 2 guests per Centurion Lounge visit",
+      ]},
+      {title:"Hotel status & perks",items:[
+        "Marriott Bonvoy Gold Elite status — room upgrades, late checkout",
+        "Hilton Honors Gold status — room upgrades, complimentary breakfast",
+        "Fine Hotels + Resorts: room upgrade, daily breakfast for 2, $100 property credit, 4pm late checkout, complimentary Wi-Fi",
+        "The Hotel Collection: $100 property credit, room upgrade upon availability",
+      ]},
+      {title:"Travel benefits",items:[
+        "No foreign transaction fees",
+        "Global Entry ($120) or TSA PreCheck ($85) credit every 4 years",
+        "Fee credit for Clear+ (~$209/yr)",
+        "International Airline Program — discounted first & business class flights",
+        "Premium Global Assist Hotline — 24/7 emergency assistance while traveling",
+        "Trip delay insurance — up to $500 after 6-hour delay (max 2 claims/yr)",
+        "Trip cancellation & interruption insurance",
+        "Baggage insurance — up to $3,000 for carry-on, $2,000 for checked",
+        "Car rental premium protection (secondary)",
+      ]},
+      {title:"Shopping & lifestyle",items:[
+        "Purchase protection — up to $10,000/item, $50,000/year",
+        "Extended warranty — 1 additional year on eligible warranties up to 5 years",
+        "Return protection — up to $300/item, $1,000/year",
+        "American Express Concierge service — 24/7 personal assistance",
+        "Exclusive access to ticket presales & experiences via Amex Experiences",
+      ]},
+      {title:"Points & redemption",items:[
+        "Transfer to 20+ airline & hotel partners (Air Canada, Delta, British Airways, Marriott & more)",
+        "1:1 transfer ratio to most partners",
+        "Use points to book flights through Amex Travel",
+        "Points don't expire as long as account is open",
+        "Pay With Points for any eligible charge",
+      ]},
+    ]
+  }
+};
+
+let openPerks={};
+function togglePerks(key){
+  openPerks[key]=!openPerks[key];
+  document.getElementById(`pkt_${key}`)?.classList.toggle('open',!!openPerks[key]);
+  document.getElementById(`pkp_${key}`)?.classList.toggle('open',!!openPerks[key]);
+}
+
+// ── Palette for custom cards ─────────────────────────────────────────────────
+const PALETTE = ["#E53935","#D81B60","#8E24AA","#3949AB","#1E88E5","#039BE5","#00897B","#43A047","#F4511E","#F6BF26","#6D4C41","#757575"];
+let selectedColor = PALETTE[4];
+
+// ── Storage ──────────────────────────────────────────────────────────────────
+const SK="cbt_used_v7", CK="cbt_custom_v7", XK="cbt_xcards_v7";
+function tryParse(s,f){try{return s?JSON.parse(s):f}catch{return f}}
+let used       = tryParse(localStorage.getItem(SK), {});
+let customVals = tryParse(localStorage.getItem(CK), {});
+let extraCards = tryParse(localStorage.getItem(XK), {});  // user-added cards
+function saveUsed()  {try{localStorage.setItem(SK,JSON.stringify(used))}catch{}}
+function saveCustom(){try{localStorage.setItem(CK,JSON.stringify(customVals))}catch{}}
+function saveExtra() {try{localStorage.setItem(XK,JSON.stringify(extraCards))}catch{}}
+
+const PK="cbt_points_v7";
+let pointsData = tryParse(localStorage.getItem(PK), {}); // {cardKey: {earned, used, dollarVal}}
+function savePoints(){try{localStorage.setItem(PK,JSON.stringify(pointsData))}catch{}}
+function getPoints(k){return pointsData[k]||{earned:'',used:'',dollarVal:''}}
+function setPoints(k,field,val){
+  if(!pointsData[k])pointsData[k]={earned:'',used:'',dollarVal:''};
+  pointsData[k][field]=val;
+  savePoints();
+  updatePtsSummary(k);
+  // refresh the summary tiles so Points Value tile stays current
+  const cards=allCards();
+  const keys=cardKeys();
+  const totAll=keys.reduce((s,k)=>s+cardTotal(k),0);
+  const clAll=keys.reduce((s,k)=>s+cardClaimed(k),0);
+  const feeAll=keys.reduce((s,k)=>s+cards[k].fee,0);
+  const pct=totAll>0?Math.round(clAll/totAll*100):0;
+  const sumEl=document.getElementById('summary');
+  if(!sumEl)return;
+  if(activeTab==="all"){
+    const ptsDollarAll=totalPointsDollar(keys);
+    sumEl.innerHTML=`<div class="sum-card"><div class="sum-label">Total credits available</div><div class="sum-val">${fmt(totAll)}</div><div class="sum-sub">across all ${keys.length} cards</div></div>
+      <div class="sum-card"><div class="sum-label">Credits claimed</div><div class="sum-val green">${fmt(clAll)}</div><div class="sum-sub">${pct}% of total used</div></div>
+      <div class="sum-card"><div class="sum-label">Net annual cost</div><div class="sum-val">${fmt(feeAll-clAll)}</div><div class="sum-sub">${fmt(feeAll)} fees − ${fmt(clAll)} credits</div></div>
+      <div class="sum-card"><div class="sum-label">Points value redeemed</div><div class="sum-val" style="color:#E8940A">${ptsDollarAll>0?'$'+ptsDollarAll.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2}):'—'}</div><div class="sum-sub">from points redemptions</div></div>`;
+  } else {
+    const t=cardTotal(activeTab),c=cardClaimed(activeTab),fee=cards[activeTab].fee;
+    const pct2=t>0?Math.round(c/t*100):0;
+    const ptsDollar=totalPointsDollar([activeTab]);
+    sumEl.innerHTML=`<div class="sum-card"><div class="sum-label">Credits available</div><div class="sum-val">${fmt(t)}</div><div class="sum-sub">total benefit value</div></div>
+      <div class="sum-card"><div class="sum-label">Claimed</div><div class="sum-val green">${fmt(c)}</div><div class="sum-sub">${pct2}% used</div></div>
+      <div class="sum-card"><div class="sum-label">Net cost</div><div class="sum-val">${fmt(fee-c)}</div><div class="sum-sub">${fmt(fee)} fee − ${fmt(c)} credits</div></div>
+      <div class="sum-card"><div class="sum-label">Points value redeemed</div><div class="sum-val" style="color:#E8940A">${ptsDollar>0?'$'+ptsDollar.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2}):'—'}</div><div class="sum-sub">from points redemptions</div></div>`;
+  }
+}
+function updatePtsSummary(k){
+  const el=document.getElementById(`pts_summary_${k}`);
+  if(!el)return;
+  const d=getPoints(k);
+  const cards=allCards();
+  const card=cards[k];
+  const earned=parseInt((d.earned||'').replace(/,/g,''))||0;
+  const used=parseInt((d.used||'').replace(/,/g,''))||0;
+  const bal=earned-used;
+  const dv=parseFloat((d.dollarVal||'').replace(/[$,]/g,''))||0;
+  if(!earned&&!used&&!dv){el.style.display='none';return;}
+  el.style.display='flex';
+  const balColor=bal>=0?card.color:'#c0392b';
+  el.innerHTML=`
+    <span>Balance: <strong style="color:${balColor}">${fmtPts(bal)} pts</strong></span>
+    ${dv>0?`<span class="pts-chip" style="background:${card.bg};color:${card.color}">$${dv.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2})} redeemed</span>`:''}`;
+}
+function fmtPts(n){return Math.abs(n).toLocaleString()+(n<0?' (overspent)':'')}
+let openPts={};
+function togglePts(key){
+  openPts[key]=!openPts[key];
+  document.getElementById(`ptt_${key}`)?.classList.toggle('open',!!openPts[key]);
+  document.getElementById(`ptp_${key}`)?.classList.toggle('open',!!openPts[key]);
+}
+
+// ── Merge built-in + extra ───────────────────────────────────────────────────
+const HK="cbt_hidden_v7";
+let hiddenCards=tryParse(localStorage.getItem(HK),[]);
+function saveHidden(){try{localStorage.setItem(HK,JSON.stringify(hiddenCards))}catch{}}
+
+function allCards(){
+  const merged={...BUILTIN_CARDS,...extraCards};
+  hiddenCards.forEach(k=>delete merged[k]);
+  return merged;
+}
+function cardKeys(){return Object.keys(allCards())}
+
+function uk(id,p){return id+"::"+p}
+function getAmt(b){return b.customizable?(customVals[b.id]||0):b.amount}
+function cardTotal(k){const c=allCards()[k];return c.benefits.reduce((s,b)=>s+getAmt(b)*b.periods.length,0)}
+function cardClaimed(k){const c=allCards()[k];return c.benefits.reduce((s,b)=>s+b.periods.filter(p=>used[uk(b.id,p)]).length*getAmt(b),0)}
+function fmt(n){return"$"+Math.round(n).toLocaleString()}
+
+let activeTab="all";
+function toggle(id,period){const k=uk(id,period);if(used[k])delete used[k];else used[k]=true;saveUsed();render()}
+function setCustom(id,val){const n=parseInt(val.replace(/\D/g,""),10);if(!isNaN(n)&&n>0)customVals[id]=n;else delete customVals[id];saveCustom();render()}
+function resetAll(){if(!confirm("Reset all tracked benefits? This can't be undone."))return;used={};customVals={};hiddenCards=[];saveUsed();saveCustom();saveHidden();render()}
+
+function deleteCard(key){
+  if(!confirm("Remove this card? You can restore it by resetting all."))return;
+  const allBeforeDelete={...BUILTIN_CARDS,...extraCards};
+  const card=allBeforeDelete[key];
+  if(card)card.benefits.forEach(b=>b.periods.forEach(p=>{delete used[uk(b.id,p)]}));
+  saveUsed();
+  if(BUILTIN_CARDS[key]){
+    hiddenCards.push(key);
+    saveHidden();
+  } else {
+    delete extraCards[key];
+    saveExtra();
+  }
+  if(activeTab===key)activeTab="all";
+  render();
+}
+
+// ── Rendering ────────────────────────────────────────────────────────────────
+function hexToBg(hex){
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return`rgba(${r},${g},${b},0.12)`;
+}
+
+function renderBenefit(b,cardKey){
+  const cards=allCards();
+  const card=cards[cardKey];
+  const amt=getAmt(b);
+  const usedN=b.periods.filter(p=>used[uk(b.id,p)]).length;
+  const pct=b.periods.length?(usedN/b.periods.length*100):0;
+  const amtHTML=b.customizable
+    ?`<span class="b-amount muted">${amt>0?fmt(amt)+" est.":"set value"}</span>`
+    :`<span class="b-amount">${fmt(amt)}</span>`;
+  const customHTML=b.customizable?`<div class="custom-row">
+    <span class="custom-lbl">Your redemption value</span>
+    <div class="custom-input-wrap"><span class="custom-prefix">$</span>
+    <input class="custom-input" type="number" min="0" placeholder="e.g. 450" value="${customVals[b.id]||""}" oninput="setCustom('${b.id}',this.value)"/></div>
+    <span class="custom-hint">varies by property</span></div>`:"";
+  const periods=b.periods.map(p=>{
+    const isUsed=!!used[uk(b.id,p)];
+    const esc=p.replace(/'/g,"\\'");
+    return`<button class="period-btn ${isUsed?"used":""}" onclick="toggle('${b.id}','${esc}')"><span>${isUsed?"✓":"○"}</span>${p}</button>`;
+  }).join("");
+  return`<div class="benefit">
+    <div class="b-top">
+      <div class="b-left"><div class="b-name">${b.name}</div><div class="b-desc">${b.desc}</div></div>
+      <div class="b-right">${amtHTML}<span class="period-pill">${b.period}</span></div>
+    </div>${customHTML}
+    <div class="b-progress">
+      <div class="progress-track"><div class="progress-fill" style="width:${pct}%;background:${card.color}"></div></div>
+      <div class="periods">${periods}</div>
+    </div></div>`;
+}
+
+function renderPerksPanel(k,card){
+  const perks=CARD_PERKS[k];
+  if(!perks) return {toggle:'',panel:''};
+  const svg=`<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  const toggle=`<button class="perks-toggle ${openPerks[k]?'open':''}" id="pkt_${k}" onclick="togglePerks('${k}')">
+    ${svg} Card perks
+  </button>`;
+  const sectionsHTML=perks.sections.map(s=>`
+    <div class="perks-section">
+      <div class="perks-section-title" style="color:${card.color}">${s.title}</div>
+      <ul class="perks-list">${s.items.map(i=>`<li>${i}</li>`).join('')}</ul>
+    </div>`).join('');
+  const panel=`<div class="perks-panel ${openPerks[k]?'open':''}" id="pkp_${k}">${sectionsHTML}</div>`;
+  return {toggle,panel};
+}
+
+function renderPtsPanel(k,card){
+  const d=getPoints(k);
+  const earned=parseInt((d.earned||'').replace(/,/g,''))||0;
+  const used=parseInt((d.used||'').replace(/,/g,''))||0;
+  const bal=earned-used;
+  const dv=parseFloat((d.dollarVal||'').replace(/[$,]/g,''))||0;
+  const hasData=d.earned||d.used||d.dollarVal;
+  const balColor=bal>=0?card.color:'#c0392b';
+  const summaryHTML=`<div class="pts-summary" id="pts_summary_${k}" style="display:${hasData?'flex':'none'}">
+    <span>Balance: <strong style="color:${balColor}">${fmtPts(bal)} pts</strong></span>
+    ${dv>0?`<span class="pts-chip" style="background:${card.bg};color:${card.color}">$${dv.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2})} redeemed</span>`:''}
+  </div>`;
+  return `
+  <button class="pts-toggle ${openPts[k]?'open':''}" id="ptt_${k}" onclick="togglePts('${k}')">
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Points tracker
+  </button>
+  <div class="pts-panel ${openPts[k]?'open':''}" id="ptp_${k}">
+    <div class="pts-panel-inner">
+      <div class="pts-fields">
+        <div class="pts-field">
+          <div class="pts-label">Points earned</div>
+          <div class="pts-input-wrap">
+            <span class="pts-prefix">pts</span>
+            <input class="pts-input" type="number" min="0" placeholder="0" value="${d.earned||''}"
+              oninput="setPoints('${k}','earned',this.value)" />
+          </div>
+        </div>
+        <div class="pts-field">
+          <div class="pts-label">Points used</div>
+          <div class="pts-input-wrap">
+            <span class="pts-prefix">pts</span>
+            <input class="pts-input" type="number" min="0" placeholder="0" value="${d.used||''}"
+              oninput="setPoints('${k}','used',this.value)" />
+          </div>
+        </div>
+        <div class="pts-field">
+          <div class="pts-label">Dollar value redeemed</div>
+          <div class="pts-input-wrap">
+            <span class="pts-prefix">$</span>
+            <input class="pts-input" type="number" min="0" step="0.01" placeholder="0.00" value="${d.dollarVal||''}"
+              oninput="setPoints('${k}','dollarVal',this.value)" />
+          </div>
+        </div>
+      </div>
+      ${summaryHTML}
+    </div>
+  </div>`;
+}
+
+function totalPointsDollar(keys){
+  return keys.reduce((s,k)=>{
+    const d=getPoints(k);
+    return s+(parseFloat((d.dollarVal||'').replace(/[$,]/g,''))||0);
+  },0);
+}
+
+function render(){
+  const cards=allCards();
+  const keys=cardKeys();
+  const totAll=keys.reduce((s,k)=>s+cardTotal(k),0);
+  const clAll=keys.reduce((s,k)=>s+cardClaimed(k),0);
+  const feeAll=keys.reduce((s,k)=>s+cards[k].fee,0);
+
+  // subtitle
+  document.getElementById('cardSubtitle').textContent=keys.map(k=>cards[k].short).join(' · ');
+
+  // tabs
+  const tabsHTML=["all",...keys].map(t=>{
+    const lbl=t==="all"?"All cards":cards[t].short;
+    const dot=t!=="all"?`<span class="dot" style="background:${cards[t].color}"></span>`:"";
+    return`<button class="tab ${activeTab===t?"active":""}" onclick="setTab('${t}')">${dot}${lbl}</button>`;
+  }).join("")+`<button class="tab-add" onclick="openModal()">+ Add card</button>`;
+  document.getElementById("tabs").innerHTML=tabsHTML;
+
+  // summary
+  let sumHTML;
+  if(activeTab==="all"){
+    const pct=totAll>0?Math.round(clAll/totAll*100):0;
+    const ptsDollarAll=totalPointsDollar(keys);
+    sumHTML=`<div class="sum-card"><div class="sum-label">Total credits available</div><div class="sum-val">${fmt(totAll)}</div><div class="sum-sub">across all ${keys.length} cards</div></div>
+      <div class="sum-card"><div class="sum-label">Credits claimed</div><div class="sum-val green">${fmt(clAll)}</div><div class="sum-sub">${pct}% of total used</div></div>
+      <div class="sum-card"><div class="sum-label">Net annual cost</div><div class="sum-val">${fmt(feeAll-clAll)}</div><div class="sum-sub">${fmt(feeAll)} fees − ${fmt(clAll)} credits</div></div>
+      <div class="sum-card"><div class="sum-label">Points value redeemed</div><div class="sum-val" style="color:#E8940A">${ptsDollarAll>0?'$'+ptsDollarAll.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2}):'—'}</div><div class="sum-sub">from points redemptions</div></div>`;
+  } else {
+    const t=cardTotal(activeTab),c=cardClaimed(activeTab),fee=cards[activeTab].fee;
+    const pct=t>0?Math.round(c/t*100):0;
+    const ptsDollar=totalPointsDollar([activeTab]);
+    sumHTML=`<div class="sum-card"><div class="sum-label">Credits available</div><div class="sum-val">${fmt(t)}</div><div class="sum-sub">total benefit value</div></div>
+      <div class="sum-card"><div class="sum-label">Claimed</div><div class="sum-val green">${fmt(c)}</div><div class="sum-sub">${pct}% used</div></div>
+      <div class="sum-card"><div class="sum-label">Net cost</div><div class="sum-val">${fmt(fee-c)}</div><div class="sum-sub">${fmt(fee)} fee − ${fmt(c)} credits</div></div>
+      <div class="sum-card"><div class="sum-label">Points value redeemed</div><div class="sum-val" style="color:#E8940A">${ptsDollar>0?'$'+ptsDollar.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2}):'—'}</div><div class="sum-sub">from points redemptions</div></div>`;
+  }
+  document.getElementById("summary").innerHTML=sumHTML;
+
+  // benefits
+  let bHTML="";
+  if(activeTab==="all"){
+    keys.forEach(k=>{
+      const card=cards[k];
+      const deleteBtn=`<button class="btn-ghost btn-danger" onclick="deleteCard('${k}')">Remove</button>`;
+      const rates=EARNING_RATES[k];
+      const ratesToggle=rates?`<button class="rates-toggle ${openRates[k]?'open':''}" id="rt_${k}" onclick="toggleRates('${k}')">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Earning rates
+      </button>`:'';
+      const ratesRows=rates?rates.map(r=>`<div class="rate-val" style="color:${card.color}">${r.val}</div><div class="rate-cat">${r.cat}</div>`).join(''):'';
+      const ratesPanel=rates?`<div class="rates-panel ${openRates[k]?'open':''}" id="rp_${k}"><div class="rates-grid">${ratesRows}</div></div>`:'';
+      const perksPanel=renderPerksPanel(k,card);
+      const ptsPanel=renderPtsPanel(k,card);
+      const togglesRow=`<div class="toggles-row">${ratesToggle}${perksPanel.toggle}</div>${ratesPanel}${perksPanel.panel}${ptsPanel}`;
+      bHTML+=`<div class="section-head" style="color:${card.color};border-bottom-color:${card.color}">${card.name}<div class="section-head-actions">${deleteBtn}</div></div>${togglesRow}`;
+      bHTML+=card.benefits.map(b=>renderBenefit(b,k)).join("");
+    });
+  } else {
+    const card=cards[activeTab];
+    const rates=EARNING_RATES[activeTab];
+    const ratesToggle=rates?`<button class="rates-toggle ${openRates[activeTab]?'open':''}" id="rt_${activeTab}" onclick="toggleRates('${activeTab}')">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Earning rates
+    </button>`:'';
+    const ratesRows=rates?rates.map(r=>`<div class="rate-val" style="color:${card.color}">${r.val}</div><div class="rate-cat">${r.cat}</div>`).join(''):'';
+    const ratesPanel=rates?`<div class="rates-panel ${openRates[activeTab]?'open':''}" id="rp_${activeTab}"><div class="rates-grid">${ratesRows}</div></div>`:'';
+    const perksPanel=renderPerksPanel(activeTab,card);
+    const ptsPanel=renderPtsPanel(activeTab,card);
+    bHTML+=`<div class="toggles-row">${ratesToggle}${perksPanel.toggle}</div>${ratesPanel}${perksPanel.panel}${ptsPanel}`;
+    bHTML+=card.benefits.map(b=>renderBenefit(b,activeTab)).join("");
+  }
+  document.getElementById("benefits").innerHTML=bHTML;
+
+  // footer fees
+  document.getElementById("footer-fees").innerHTML=keys.map(k=>`
+    <div class="fee-item"><div class="fee-num" style="color:${cards[k].color}">${fmt(cards[k].fee)}</div><div class="fee-lbl">${cards[k].short}</div></div>`).join("");
+}
+
+function setTab(t){activeTab=t;render()}
+
+// ── Modal ────────────────────────────────────────────────────────────────────
+let benefitRowCount=0;
+
+function openModal(){
+  selectedColor=PALETTE[4];
+  document.getElementById('aiCardName').value='';
+  document.getElementById('lookupStatus').textContent='';
+  document.getElementById('lookupStatus').className='lookup-status';
+  showLookupStep();
+  document.getElementById('modalBackdrop').classList.add('open');
+  setTimeout(()=>document.getElementById('aiCardName').focus(),100);
+}
+
+function showLookupStep(){
+  document.getElementById('stepLookup').style.display='';
+  document.getElementById('stepEdit').style.display='none';
+  document.getElementById('modalTitle').textContent='Add a card';
+  pendingAI=null;
+}
+
+function showManualStep(prefill){
+  benefitRowCount=0;
+  document.getElementById('mCardName').value=prefill?.name||'';
+  document.getElementById('mCardShort').value=prefill?.short||'';
+  document.getElementById('mCardFee').value=prefill?.fee!=null?prefill.fee:'';
+  if(prefill?.color){selectedColor=prefill.color;}else{selectedColor=PALETTE[4];}
+  renderColorPicker();
+  document.getElementById('benefitRows').innerHTML='';
+  if(prefill?.benefits&&prefill.benefits.length){
+    prefill.benefits.forEach(b=>addBenefitRow(b));
+  } else {
+    addBenefitRow();
+  }
+  document.getElementById('stepLookup').style.display='none';
+  document.getElementById('stepEdit').style.display='';
+  document.getElementById('modalTitle').textContent=prefill?.name?`Review: ${prefill.name}`:'Add a card';
+}
+
+async function lookupCard(){
+  const name=document.getElementById('aiCardName').value.trim();
+  if(!name)return;
+  const btn=document.getElementById('lookupBtn');
+  const status=document.getElementById('lookupStatus');
+  btn.disabled=true;
+  btn.textContent='Looking up…';
+  status.className='lookup-status';
+  status.innerHTML='<div class="spinner"></div> Fetching card details from AI…';
+
+  const prompt=`You are a credit card benefits expert. The user wants to add "${name}" to a benefits tracker app.
+
+Return ONLY valid JSON (no markdown, no explanation) in this exact format:
+{
+  "name": "Full official card name",
+  "short": "2-3 word short name for a tab",
+  "fee": 95,
+  "color": "#HEX (pick a color that matches the card issuer brand)",
+  "benefits": [
+    {
+      "name": "Benefit name",
+      "desc": "Short description of what qualifies",
+      "amount": 50,
+      "period": "annual|semester|quarterly|monthly|per stay|4-year",
+      "years": "both"
+    }
+  ],
+  "earningRates": [
+    {"val": "3x", "cat": "points on dining worldwide"}
+  ],
+  "perks": [
+    {"title": "Section title", "items": ["perk 1", "perk 2"]}
+  ]
+}
+
+Rules:
+- Only include benefits that have a trackable dollar credit amount (no intangible perks in benefits array)
+- For the period field use: "monthly" for monthly credits, "quarterly" for quarterly, "semester" for semi-annual, "annual" for annual, "per stay" for per-stay credits, "4-year" for one-time credits every 4 years
+- The "years" field should always be "both" (covers 2026 and 2027)
+- amount should be the per-period dollar amount (e.g. for a $300/yr credit paid $25/month, use amount:25 and period:"monthly")
+- color should be a hex color matching the card issuer (Chase=green #117E48, Amex=purple #6B4FC8, Citi=blue #1A5FA8, Capital One=red #C0392B, etc.)
+- perks sections should cover lounges, hotel status, travel protections, shopping protections, and any notable non-credit benefits
+- Return ONLY the JSON object, nothing else`;
+
+  try {
+    const res=await fetch('/.netlify/functions/ai-lookup',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({cardName:name,prompt})
+    });
+    const data=await res.json();
+    const text=data.content?.filter(c=>c.type==='text').map(c=>c.text).join('');
+    if(!text)throw new Error('No response from AI');
+
+    // strip any markdown fences just in case
+    const clean=text.replace(/```json|```/gi,'').trim();
+    const card=JSON.parse(clean);
+
+    status.className='lookup-status success';
+    status.innerHTML=`✓ Found <strong>${card.name}</strong> — review and save below`;
+    btn.disabled=false;
+    btn.textContent='Look up';
+    pendingAI=card;
+    // small delay so user sees the success message
+    setTimeout(()=>showManualStep(card),600);
+
+  } catch(err){
+    status.className='lookup-status error';
+    status.innerHTML=`Could not look up card. Check your connection and try again, or add manually.`;
+    btn.disabled=false;
+    btn.textContent='Look up';
+  }
+}
+
+function closeModal(){document.getElementById('modalBackdrop').classList.remove('open')}
+function handleBackdropClick(e){if(e.target===document.getElementById('modalBackdrop'))closeModal()}
+
+function renderColorPicker(){
+  document.getElementById('colorRow').innerHTML=PALETTE.map(c=>`
+    <div class="color-swatch ${c===selectedColor?'selected':''}" style="background:${c}" onclick="pickColor('${c}')"></div>`).join('');
+}
+
+function pickColor(c){selectedColor=c;renderColorPicker()}
+
+function addBenefitRow(prefill){
+  benefitRowCount++;
+  const id=`br${benefitRowCount}`;
+  const row=document.createElement('div');
+  row.className='benefit-row';
+  row.id=id;
+  const pName=prefill?.name||'';
+  const pDesc=prefill?.desc||'';
+  const pAmt=prefill?.amount!=null?prefill.amount:'';
+  const pPeriod=prefill?.period||'annual';
+  row.innerHTML=`
+    <div style="grid-column:1/-1">
+      <div class="benefit-row-top">
+        <span class="benefit-row-num">Benefit ${benefitRowCount}</span>
+        <button class="remove-benefit" onclick="removeBenefitRow('${id}')">×</button>
+      </div>
+      <div style="margin-top:6px">
+        <input type="text" placeholder="Benefit name (e.g. Travel Credit)" value="${pName.replace(/"/g,'&quot;')}" style="width:100%;padding:6px 8px;border:0.5px solid var(--border-med);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-size:12px;font-family:inherit;outline:none;margin-bottom:6px" data-field="name"/>
+        <input type="text" placeholder="Description" value="${pDesc.replace(/"/g,'&quot;')}" style="width:100%;padding:6px 8px;border:0.5px solid var(--border-med);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-size:12px;font-family:inherit;outline:none;margin-bottom:6px" data-field="desc"/>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:2px">
+        <div>
+          <div style="font-size:11px;color:var(--text-3);margin-bottom:3px">Amount ($)</div>
+          <input type="number" min="0" placeholder="e.g. 300" value="${pAmt}" style="width:100%;padding:6px 8px;border:0.5px solid var(--border-med);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-size:12px;font-family:inherit;outline:none" data-field="amount"/>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--text-3);margin-bottom:3px">Period type</div>
+          <select style="width:100%;padding:6px 8px;border:0.5px solid var(--border-med);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-size:12px;font-family:inherit;outline:none" data-field="period">
+            <option value="annual" ${pPeriod==='annual'?'selected':''}>Annual</option>
+            <option value="semester" ${pPeriod==='semester'?'selected':''}>Semester</option>
+            <option value="quarterly" ${pPeriod==='quarterly'?'selected':''}>Quarterly</option>
+            <option value="monthly" ${pPeriod==='monthly'?'selected':''}>Monthly</option>
+            <option value="per stay" ${pPeriod==='per stay'?'selected':''}>Per stay</option>
+            <option value="4-year" ${pPeriod==='4-year'?'selected':''}>4-year</option>
+          </select>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--text-3);margin-bottom:3px">Years</div>
+          <select style="width:100%;padding:6px 8px;border:0.5px solid var(--border-med);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-size:12px;font-family:inherit;outline:none" data-field="years">
+            <option value="2026">2026 only</option>
+            <option value="2027">2027 only</option>
+            <option value="both" selected>2026 & 2027</option>
+          </select>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('benefitRows').appendChild(row);
+}
+
+function removeBenefitRow(id){
+  const el=document.getElementById(id);
+  if(el)el.remove();
+}
+
+function buildPeriods(periodType, years){
+  const y26=years==="2026"||years==="both";
+  const y27=years==="2027"||years==="both";
+  const months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const quarters=["Q1","Q2","Q3","Q4"];
+  let periods=[];
+  if(periodType==="annual"){
+    if(y26)periods.push("2026");
+    if(y27)periods.push("2027");
+  } else if(periodType==="semester"){
+    if(y26)periods.push("Jan–Jun 2026","Jul–Dec 2026");
+    if(y27)periods.push("Jan–Jun 2027","Jul–Dec 2027");
+  } else if(periodType==="quarterly"){
+    if(y26)quarters.forEach(q=>periods.push(`${q} 2026`));
+    if(y27)quarters.forEach(q=>periods.push(`${q} 2027`));
+  } else if(periodType==="monthly"){
+    if(y26)months.forEach(m=>periods.push(`${m} 26`));
+    if(y27)months.forEach(m=>periods.push(`${m} 27`));
+  } else if(periodType==="per stay"){
+    if(y26)periods.push("Stay 1 (2026)","Stay 2 (2026)");
+    if(y27)periods.push("Stay 1 (2027)","Stay 2 (2027)");
+  } else if(periodType==="4-year"){
+    periods.push("2024–2028");
+  }
+  return periods;
+}
+
+function saveCard(){
+  const name=document.getElementById('mCardName').value.trim();
+  const short=document.getElementById('mCardShort').value.trim()||name.split(' ').slice(-1)[0];
+  const fee=parseInt(document.getElementById('mCardFee').value)||0;
+  if(!name){alert("Please enter a card name.");return}
+
+  const rows=document.getElementById('benefitRows').querySelectorAll('.benefit-row');
+  const benefits=[];
+  let bIdx=0;
+  rows.forEach(row=>{
+    const bName=row.querySelector('[data-field="name"]').value.trim();
+    const bDesc=row.querySelector('[data-field="desc"]').value.trim();
+    const bAmt=parseFloat(row.querySelector('[data-field="amount"]').value)||0;
+    const bPeriod=row.querySelector('[data-field="period"]').value;
+    const bYears=row.querySelector('[data-field="years"]').value;
+    if(!bName)return;
+    bIdx++;
+    const cardKey=name.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'');
+    benefits.push({
+      id:`${cardKey}_b${bIdx}`,
+      name:bName, desc:bDesc||bName,
+      amount:bAmt, period:bPeriod,
+      periods:buildPeriods(bPeriod,bYears)
+    });
+  });
+
+  if(benefits.length===0){alert("Please add at least one benefit.");return}
+
+  const cardKey=name.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'')+`_${Date.now()}`;
+  const cardObj={
+    name, short, color:selectedColor,
+    bg:hexToBg(selectedColor),
+    fee, builtin:false, benefits
+  };
+  // attach AI-returned earning rates and perks if available
+  if(pendingAI?.earningRates) cardObj.earningRates=pendingAI.earningRates;
+  if(pendingAI?.perks) cardObj.perks=pendingAI.perks;
+  pendingAI=null;
+  extraCards[cardKey]=cardObj;
+  // register dynamic earning rates & perks so dropdowns work immediately
+  if(cardObj.earningRates) EARNING_RATES[cardKey]=cardObj.earningRates;
+  if(cardObj.perks) CARD_PERKS[cardKey]={sections:cardObj.perks};
+  saveExtra();
+  closeModal();
+  activeTab=cardKey;
+  render();
+}
+
+// store AI result temporarily until saveCard is called
+let pendingAI=null;
+
+render();
+</script>
+</body>
+</html>
