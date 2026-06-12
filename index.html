@@ -203,6 +203,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,san
 .btn-manual{background:none;border:none;color:var(--text-3);font-size:13px;cursor:pointer;font-family:inherit;padding:4px 0;transition:color .15s}
 .btn-manual:hover{color:var(--text-2)}
 
+/* ── Card picker ── */
+.picker-label{font-size:13px;font-weight:600;color:var(--text);margin:1rem 0 .6rem}
+.card-option{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:.75rem 1rem;background:var(--surface2);border:0.5px solid var(--border-med);border-radius:var(--radius-sm);margin-bottom:8px;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent}
+.card-option:hover{background:var(--surface);border-color:var(--border-med)}
+.card-option-left{flex:1;min-width:0}
+.card-option-name{font-size:14px;font-weight:600}
+.card-option-meta{font-size:12px;color:var(--text-2);margin-top:2px}
+.card-option-arrow{color:var(--text-3);font-size:16px;flex-shrink:0}
+.card-option-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+
 @media(max-width:540px){
   /* Layout */
   .shell{padding:1rem .875rem 3rem}
@@ -322,11 +332,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,san
         <div class="ai-lookup-icon">✦</div>
         <div class="ai-lookup-desc">Type a card name and let AI fill in the benefits, earning rates, perks and annual fee automatically.</div>
         <div class="ai-search-row">
-          <input type="text" id="aiCardName" placeholder="e.g. Chase Sapphire Preferred" autocomplete="off"
+          <input type="text" id="aiCardName" placeholder="e.g. Delta Platinum American Express" autocomplete="off"
             onkeydown="if(event.key==='Enter')lookupCard()" />
           <button class="btn-primary" id="lookupBtn" onclick="lookupCard()">Look up</button>
         </div>
         <div id="lookupStatus" class="lookup-status"></div>
+      </div>
+      <!-- Card picker (shown when multiple matches found) -->
+      <div id="cardPicker" style="display:none">
+        <div class="picker-label">Which card did you mean?</div>
+        <div id="cardPickerOptions"></div>
       </div>
       <div class="lookup-divider"><span>or add manually</span></div>
       <button class="btn-manual" onclick="showManualStep()">Fill in details manually →</button>
@@ -918,43 +933,38 @@ async function lookupCard(){
   if(!name)return;
   const btn=document.getElementById('lookupBtn');
   const status=document.getElementById('lookupStatus');
+  const picker=document.getElementById('cardPicker');
   btn.disabled=true;
   btn.textContent='Looking up…';
   status.className='lookup-status';
-  status.innerHTML='<div class="spinner"></div> Fetching card details from AI…';
+  status.innerHTML='<div class="spinner"></div> Searching for matching cards…';
+  picker.style.display='none';
 
-  const prompt=`You are a credit card benefits expert. The user wants to add "${name}" to a benefits tracker app.
+  const prompt=`You are a credit card benefits expert. The user searched for "${name}".
 
-Return ONLY valid JSON (no markdown, no explanation) in this exact format:
+Return ONLY valid JSON (no markdown, no explanation) with an array of up to 3 matching cards. If only one obvious match exists return just that one. Order by most likely match first.
+
 {
-  "name": "Full official card name",
-  "short": "2-3 word short name for a tab",
-  "fee": 95,
-  "color": "#HEX (pick a color that matches the card issuer brand)",
-  "benefits": [
+  "matches": [
     {
-      "name": "Benefit name",
-      "desc": "Short description of what qualifies",
-      "amount": 50,
-      "period": "annual|semester|quarterly|monthly|per stay|4-year",
-      "years": "both"
+      "name": "Full official card name",
+      "short": "2-3 word short name",
+      "issuer": "e.g. American Express",
+      "fee": 250,
+      "color": "#HEX matching issuer brand",
+      "benefits": [
+        {"name": "Benefit name","desc": "Short description","amount": 50,"period": "annual|semester|quarterly|monthly|per stay|4-year","years": "both"}
+      ],
+      "earningRates": [{"val": "3x","cat": "miles on Delta purchases"}],
+      "perks": [{"title": "Section title","items": ["perk 1","perk 2"]}]
     }
-  ],
-  "earningRates": [
-    {"val": "3x", "cat": "points on dining worldwide"}
-  ],
-  "perks": [
-    {"title": "Section title", "items": ["perk 1", "perk 2"]}
   ]
 }
 
 Rules:
-- Only include benefits that have a trackable dollar credit amount (no intangible perks in benefits array)
-- For the period field use: "monthly" for monthly credits, "quarterly" for quarterly, "semester" for semi-annual, "annual" for annual, "per stay" for per-stay credits, "4-year" for one-time credits every 4 years
-- The "years" field should always be "both" (covers 2026 and 2027)
-- amount should be the per-period dollar amount (e.g. for a $300/yr credit paid $25/month, use amount:25 and period:"monthly")
-- color should be a hex color matching the card issuer (Chase=green #117E48, Amex=purple #6B4FC8, Citi=blue #1A5FA8, Capital One=red #C0392B, etc.)
-- perks sections should cover lounges, hotel status, travel protections, shopping protections, and any notable non-credit benefits
+- Only include benefits with a trackable dollar credit amount
+- amount = per-period value (e.g. $25/month for a $300/yr monthly credit)
+- color: Amex=#6B4FC8, Chase=#117E48, Citi=#1A5FA8, Capital One=#C0392B, Delta/Amex=#003366
 - Return ONLY the JSON object, nothing else`;
 
   try {
@@ -967,17 +977,24 @@ Rules:
     const text=data.content?.filter(c=>c.type==='text').map(c=>c.text).join('');
     if(!text)throw new Error('No response from AI');
 
-    // strip any markdown fences just in case
     const clean=text.replace(/```json|```/gi,'').trim();
-    const card=JSON.parse(clean);
+    const result=JSON.parse(clean);
+    const matches=result.matches||[result];
 
-    status.className='lookup-status success';
-    status.innerHTML=`✓ Found <strong>${card.name}</strong> — review and save below`;
-    btn.disabled=false;
-    btn.textContent='Look up';
-    pendingAI=card;
-    // small delay so user sees the success message
-    setTimeout(()=>showManualStep(card),600);
+    if(matches.length===1){
+      status.className='lookup-status success';
+      status.innerHTML=`✓ Found <strong>${matches[0].name}</strong> — review and save below`;
+      btn.disabled=false;
+      btn.textContent='Look up';
+      pendingAI=matches[0];
+      setTimeout(()=>showManualStep(matches[0]),600);
+    } else {
+      status.innerHTML='';
+      status.className='lookup-status';
+      btn.disabled=false;
+      btn.textContent='Look up';
+      showCardPicker(matches);
+    }
 
   } catch(err){
     status.className='lookup-status error';
@@ -985,6 +1002,32 @@ Rules:
     btn.disabled=false;
     btn.textContent='Look up';
   }
+}
+
+function showCardPicker(matches){
+  const picker=document.getElementById('cardPicker');
+  const opts=document.getElementById('cardPickerOptions');
+  opts.innerHTML=matches.map((card,i)=>`
+    <div class="card-option" onclick="selectCard(${i})">
+      <span class="card-option-dot" style="background:${card.color}"></span>
+      <div class="card-option-left">
+        <div class="card-option-name">${card.name}</div>
+        <div class="card-option-meta">${card.issuer||''} · $${card.fee||0}/yr annual fee</div>
+      </div>
+      <span class="card-option-arrow">›</span>
+    </div>`).join('');
+  picker.style.display='';
+  picker._matches=matches;
+}
+
+function selectCard(idx){
+  const picker=document.getElementById('cardPicker');
+  const card=picker._matches[idx];
+  pendingAI=card;
+  const status=document.getElementById('lookupStatus');
+  status.className='lookup-status success';
+  status.innerHTML=`✓ Selected <strong>${card.name}</strong> — review and save below`;
+  setTimeout(()=>showManualStep(card),400);
 }
 
 function closeModal(){document.getElementById('modalBackdrop').classList.remove('open')}
