@@ -7,7 +7,7 @@ exports.handler = async (event) => {
   if (!apiKey) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'API key not configured' })
+      body: JSON.stringify({ error: 'API key not configured. Please add ANTHROPIC_API_KEY in Netlify environment variables.' })
     };
   }
 
@@ -32,8 +32,8 @@ exports.handler = async (event) => {
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1500,
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 2000,
         messages: [{ role: 'user', content: prompt }]
       })
     });
@@ -43,7 +43,10 @@ exports.handler = async (event) => {
     if (!response.ok) {
       return {
         statusCode: response.status,
-        body: JSON.stringify({ error: data.error?.message || 'API error' })
+        body: JSON.stringify({ 
+          error: data.error?.message || 'Anthropic API error',
+          detail: JSON.stringify(data)
+        })
       };
     }
 
