@@ -302,7 +302,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,san
       <h1>Credit Card Benefits Tracker</h1>
       <p id="cardSubtitle">Hilton Aspire · Chase Sapphire Reserve · Amex Platinum</p>
     </div>
-    <span class="year-pill">2026–2027</span>
+    <span class="year-pill" id="yearPill"></span>
   </div>
 
   <div class="summary" id="summary"></div>
@@ -399,39 +399,77 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,san
 })();
 function dismissBanner(){document.getElementById('installBanner').classList.remove('visible');sessionStorage.setItem('install_dismissed','1')}
 
+// ── Dynamic year helpers ────────────────────────────────────────────────────
+const CY = new Date().getFullYear();       // current year e.g. 2026
+const NY = CY + 1;                         // next year    e.g. 2027
+const CY2 = String(CY).slice(2);           // e.g. "26"
+const NY2 = String(NY).slice(2);           // e.g. "27"
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const QUARTERS = ["Q1","Q2","Q3","Q4"];
+
+function dynPeriods(type, opts={}){
+  const y1 = opts.startYear || CY;
+  const y2 = opts.endYear   || NY;
+  const y12 = String(y1).slice(2);
+  const y22 = String(y2).slice(2);
+  const years = opts.singleYear ? [y1] : [y1, y2];
+  const p = [];
+  years.forEach(y => {
+    const yy = String(y).slice(2);
+    if(type==="annual")       p.push(String(y));
+    if(type==="semester")     p.push(`Jan–Jun ${y}`, `Jul–Dec ${y}`);
+    if(type==="quarterly")    QUARTERS.forEach(q => p.push(`${q} ${y}`));
+    if(type==="monthly")      MONTHS.forEach(m => p.push(`${m} ${yy}`));
+    if(type==="per stay")     p.push(`Stay 1 (${y})`, `Stay 2 (${y})`);
+    if(type==="4-year")       p.push(`${y}–${y+4}`);
+  });
+  // cap monthly at specific end month/year if provided
+  if(opts.endMonth && opts.endYear){
+    const endIdx = MONTHS.indexOf(opts.endMonth);
+    return p.filter(period => {
+      const parts = period.split(' ');
+      const m = parts[0]; const yy2 = parts[1];
+      const yr = 2000 + parseInt(yy2);
+      const mi = MONTHS.indexOf(m);
+      return yr < opts.endYear || (yr === opts.endYear && mi <= endIdx);
+    });
+  }
+  return p;
+}
+
 // ── Built-in cards ───────────────────────────────────────────────────────────
 const BUILTIN_CARDS = {
   hilton:{name:"Hilton Honors Aspire",short:"Aspire",color:"#1A6EBD",bg:"#EBF3FC",fee:550,builtin:true,benefits:[
-    {id:"h1",name:"Hilton Resort Credit",desc:"Eligible charges at participating Hilton Resorts",amount:200,period:"semester",periods:["Jan–Jun 2026","Jul–Dec 2026","Jan–Jun 2027","Jul–Dec 2027"]},
-    {id:"h2",name:"Airline Fee Credit",desc:"Eligible flight purchases on one selected airline ($50/quarter)",amount:50,period:"quarterly",periods:["Q1 2026","Q2 2026","Q3 2026","Q4 2026","Q1 2027","Q2 2027","Q3 2027","Q4 2027"]},
-    {id:"h3",name:"Waldorf / Conrad Property Credit",desc:"$100 per eligible 2-night stay at Waldorf Astoria or Conrad",amount:100,period:"per stay",periods:["Stay 1 (2026)","Stay 2 (2026)","Stay 1 (2027)","Stay 2 (2027)"]},
-    {id:"h4",name:"Free Night Reward",desc:"Valid at almost any Hilton property — enter the value of your redemption",amount:null,customizable:true,period:"annual",periods:["2026","2027"]},
-    {id:"h5",name:"CLEAR+ Membership",desc:"Complimentary annual CLEAR+ membership (~$209 value)",amount:209,period:"annual",periods:["2026","2027"]},
+    {id:"h1",name:"Hilton Resort Credit",desc:"Eligible charges at participating Hilton Resorts",amount:200,period:"semester",periods:dynPeriods("semester")},
+    {id:"h2",name:"Airline Fee Credit",desc:"Eligible flight purchases on one selected airline ($50/quarter)",amount:50,period:"quarterly",periods:dynPeriods("quarterly")},
+    {id:"h3",name:"Waldorf / Conrad Property Credit",desc:"$100 per eligible 2-night stay at Waldorf Astoria or Conrad",amount:100,period:"per stay",periods:dynPeriods("per stay")},
+    {id:"h4",name:"Free Night Reward",desc:"Valid at almost any Hilton property — enter the value of your redemption",amount:null,customizable:true,period:"annual",periods:dynPeriods("annual")},
+    {id:"h5",name:"CLEAR+ Membership",desc:"Complimentary annual CLEAR+ membership (~$209 value)",amount:209,period:"annual",periods:dynPeriods("annual")},
   ]},
   chase:{name:"Chase Sapphire Reserve",short:"Sapphire Reserve",color:"#117E48",bg:"#E8F5EE",fee:795,builtin:true,benefits:[
-    {id:"c1",name:"Annual Travel Credit",desc:"Automatic statement credit on any travel purchase",amount:300,period:"annual",periods:["2026","2027"]},
-    {id:"c2",name:"The Edit Hotel Credit",desc:"Prepaid stays at The Edit by Chase Travel luxury properties ($250/semester)",amount:250,period:"semester",periods:["Jan–Jun 2026","Jul–Dec 2026","Jan–Jun 2027","Jul–Dec 2027"]},
-    {id:"c3",name:"Select Hotels Credit",desc:"IHG, Omni, Virgin Hotels & more — 2026 only (2-night min required)",amount:250,period:"annual",periods:["2026"]},
-    {id:"c4",name:"Dining Credit",desc:"Sapphire Reserve Exclusive Tables via OpenTable ($150/semester)",amount:150,period:"semester",periods:["Jan–Jun 2026","Jul–Dec 2026","Jan–Jun 2027","Jul–Dec 2027"]},
-    {id:"c5",name:"StubHub / viagogo Credit",desc:"Ticket purchases on StubHub.com and viagogo.com — activation required ($150/semester, through Dec 2027)",amount:150,period:"semester",periods:["Jan–Jun 2026","Jul–Dec 2026","Jan–Jun 2027","Jul–Dec 2027"]},
-    {id:"c6",name:"Lyft Credit",desc:"$10/month in-app credit on Lyft rides (through Sept 30, 2027)",amount:10,period:"monthly",periods:["Jan 26","Feb 26","Mar 26","Apr 26","May 26","Jun 26","Jul 26","Aug 26","Sep 26","Oct 26","Nov 26","Dec 26","Jan 27","Feb 27","Mar 27","Apr 27","May 27","Jun 27","Jul 27","Aug 27","Sep 27"]},
-    {id:"c7",name:"Peloton Credit",desc:"$10/month on eligible Peloton memberships — activation required (through Dec 2027)",amount:10,period:"monthly",periods:["Jan 26","Feb 26","Mar 26","Apr 26","May 26","Jun 26","Jul 26","Aug 26","Sep 26","Oct 26","Nov 26","Dec 26","Jan 27","Feb 27","Mar 27","Apr 27","May 27","Jun 27","Jul 27","Aug 27","Sep 27","Oct 27","Nov 27","Dec 27"]},
-    {id:"c8",name:"DoorDash DashPass",desc:"Complimentary DashPass + $5 off 1 food & $10 off 2 non-restaurant orders/month (through Dec 2027)",amount:15,period:"monthly",periods:["Jan 26","Feb 26","Mar 26","Apr 26","May 26","Jun 26","Jul 26","Aug 26","Sep 26","Oct 26","Nov 26","Dec 26","Jan 27","Feb 27","Mar 27","Apr 27","May 27","Jun 27","Jul 27","Aug 27","Sep 27","Oct 27","Nov 27","Dec 27"]},
+    {id:"c1",name:"Annual Travel Credit",desc:"Automatic statement credit on any travel purchase",amount:300,period:"annual",periods:dynPeriods("annual")},
+    {id:"c2",name:"The Edit Hotel Credit",desc:"Prepaid stays at The Edit by Chase Travel luxury properties ($250/semester)",amount:250,period:"semester",periods:dynPeriods("semester")},
+    {id:"c3",name:"Select Hotels Credit",desc:"IHG, Omni, Virgin Hotels & more — 2026 only (2-night min required)",amount:250,period:"annual",periods:dynPeriods("annual",{singleYear:true})},
+    {id:"c4",name:"Dining Credit",desc:"Sapphire Reserve Exclusive Tables via OpenTable ($150/semester)",amount:150,period:"semester",periods:dynPeriods("semester")},
+    {id:"c5",name:"StubHub / viagogo Credit",desc:"Ticket purchases on StubHub.com and viagogo.com — activation required ($150/semester, through Dec 2027)",amount:150,period:"semester",periods:dynPeriods("semester")},
+    {id:"c6",name:"Lyft Credit",desc:"$10/month in-app credit on Lyft rides (through Sept 30, 2027)",amount:10,period:"monthly",periods:dynPeriods("monthly",{endMonth:"Sep",endYear:NY})},
+    {id:"c7",name:"Peloton Credit",desc:"$10/month on eligible Peloton memberships — activation required (through Dec 2027)",amount:10,period:"monthly",periods:dynPeriods("monthly")},
+    {id:"c8",name:"DoorDash DashPass",desc:"Complimentary DashPass + $5 off 1 food & $10 off 2 non-restaurant orders/month (through Dec 2027)",amount:15,period:"monthly",periods:dynPeriods("monthly")},
     {id:"c9",name:"Global Entry / TSA PreCheck",desc:"Application fee credit once every 4 years",amount:120,period:"4-year",periods:["2024–2028"]},
-    {id:"c10",name:"Apple TV+ & Apple Music",desc:"Complimentary subscriptions through Jun 22, 2027 (~$288/yr value)",amount:288,period:"annual",periods:["2026","2027"]},
+    {id:"c10",name:"Apple TV+ & Apple Music",desc:"Complimentary subscriptions through Jun 22, 2027 (~$288/yr value)",amount:288,period:"annual",periods:dynPeriods("annual")},
   ]},
   amex:{name:"Amex Platinum",short:"Platinum",color:"#6B4FC8",bg:"#F0ECFB",fee:895,builtin:true,benefits:[
-    {id:"a1",name:"Airline Incidental Credit",desc:"Fee credit on one selected qualifying airline",amount:200,period:"annual",periods:["2026","2027"]},
-    {id:"a2",name:"Fine Hotels + Resorts / Hotel Collection",desc:"Prepaid bookings via Amex Travel ($300/semester)",amount:300,period:"semester",periods:["Jan–Jun 2026","Jul–Dec 2026","Jan–Jun 2027","Jul–Dec 2027"]},
-    {id:"a3",name:"Uber Cash",desc:"$15/month credit via Uber app ($20 in December)",amount:15,period:"monthly",periods:["Jan 26","Feb 26","Mar 26","Apr 26","May 26","Jun 26","Jul 26","Aug 26","Sep 26","Oct 26","Nov 26","Dec 26","Jan 27","Feb 27","Mar 27","Apr 27","May 27","Jun 27","Jul 27","Aug 27","Sep 27","Oct 27","Nov 27","Dec 27"]},
-    {id:"a3b",name:"Uber Cash (December bonus)",desc:"Extra $5 Uber Cash bonus in December (total $20)",amount:5,period:"monthly",periods:["Dec 26","Dec 27"]},
-    {id:"a4",name:"Resy Dining Credit",desc:"Eligible dining purchases via Resy ($200/semester)",amount:200,period:"semester",periods:["Jan–Jun 2026","Jul–Dec 2026","Jan–Jun 2027","Jul–Dec 2027"]},
-    {id:"a5",name:"Digital Entertainment Credit",desc:"Disney+, Hulu, ESPN+, NYT, Peacock & more ($25/month)",amount:25,period:"monthly",periods:["Jan 26","Feb 26","Mar 26","Apr 26","May 26","Jun 26","Jul 26","Aug 26","Sep 26","Oct 26","Nov 26","Dec 26","Jan 27","Feb 27","Mar 27","Apr 27","May 27","Jun 27","Jul 27","Aug 27","Sep 27","Oct 27","Nov 27","Dec 27"]},
-    {id:"a6",name:"Equinox Credit",desc:"Equinox membership or Equinox+ digital subscription ($25/month)",amount:25,period:"monthly",periods:["Jan 26","Feb 26","Mar 26","Apr 26","May 26","Jun 26","Jul 26","Aug 26","Sep 26","Oct 26","Nov 26","Dec 26","Jan 27","Feb 27","Mar 27","Apr 27","May 27","Jun 27","Jul 27","Aug 27","Sep 27","Oct 27","Nov 27","Dec 27"]},
-    {id:"a7",name:"lululemon Credit",desc:"Eligible lululemon purchases ($25/month)",amount:25,period:"monthly",periods:["Jan 26","Feb 26","Mar 26","Apr 26","May 26","Jun 26","Jul 26","Aug 26","Sep 26","Oct 26","Nov 26","Dec 26","Jan 27","Feb 27","Mar 27","Apr 27","May 27","Jun 27","Jul 27","Aug 27","Sep 27","Oct 27","Nov 27","Dec 27"]},
-    {id:"a8",name:"Walmart+ Credit",desc:"Monthly Walmart+ membership fee statement credit (~$12.95/month)",amount:13,period:"monthly",periods:["Jan 26","Feb 26","Mar 26","Apr 26","May 26","Jun 26","Jul 26","Aug 26","Sep 26","Oct 26","Nov 26","Dec 26","Jan 27","Feb 27","Mar 27","Apr 27","May 27","Jun 27","Jul 27","Aug 27","Sep 27","Oct 27","Nov 27","Dec 27"]},
-    {id:"a9",name:"Oura Ring Credit",desc:"Eligible Oura Ring hardware or membership purchases ($200/year — use when needed)",amount:200,period:"annual",periods:["2026","2027"]},
-    {id:"a10",name:"CLEAR+ Membership",desc:"Complimentary annual CLEAR+ membership (~$209 value)",amount:209,period:"annual",periods:["2026","2027"]},
+    {id:"a1",name:"Airline Incidental Credit",desc:"Fee credit on one selected qualifying airline",amount:200,period:"annual",periods:dynPeriods("annual")},
+    {id:"a2",name:"Fine Hotels + Resorts / Hotel Collection",desc:"Prepaid bookings via Amex Travel ($300/semester)",amount:300,period:"semester",periods:dynPeriods("semester")},
+    {id:"a3",name:"Uber Cash",desc:"$15/month credit via Uber app ($20 in December)",amount:15,period:"monthly",periods:dynPeriods("monthly")},
+    {id:"a3b",name:"Uber Cash (December bonus)",desc:"Extra $5 Uber Cash bonus in December (total $20)",amount:5,period:"monthly",periods:[`Dec ${CY2}`,`Dec ${NY2}`]},
+    {id:"a4",name:"Resy Dining Credit",desc:"Eligible dining purchases via Resy ($200/semester)",amount:200,period:"semester",periods:dynPeriods("semester")},
+    {id:"a5",name:"Digital Entertainment Credit",desc:"Disney+, Hulu, ESPN+, NYT, Peacock & more ($25/month)",amount:25,period:"monthly",periods:dynPeriods("monthly")},
+    {id:"a6",name:"Equinox Credit",desc:"Equinox membership or Equinox+ digital subscription ($25/month)",amount:25,period:"monthly",periods:dynPeriods("monthly")},
+    {id:"a7",name:"lululemon Credit",desc:"Eligible lululemon purchases ($25/month)",amount:25,period:"monthly",periods:dynPeriods("monthly")},
+    {id:"a8",name:"Walmart+ Credit",desc:"Monthly Walmart+ membership fee statement credit (~$12.95/month)",amount:13,period:"monthly",periods:dynPeriods("monthly")},
+    {id:"a9",name:"Oura Ring Credit",desc:"Eligible Oura Ring hardware or membership purchases ($200/year — use when needed)",amount:200,period:"annual",periods:dynPeriods("annual")},
+    {id:"a10",name:"CLEAR+ Membership",desc:"Complimentary annual CLEAR+ membership (~$209 value)",amount:209,period:"annual",periods:dynPeriods("annual")},
     {id:"a11",name:"Global Entry / TSA PreCheck",desc:"Application fee credit every 4 years",amount:120,period:"4-year",periods:["2024–2028"]},
   ]}
 };
@@ -819,6 +857,7 @@ function render(){
 
   // subtitle
   document.getElementById('cardSubtitle').textContent=keys.map(k=>cards[k].short).join(' · ');
+  const yp=document.getElementById('yearPill');if(yp)yp.textContent=`${CY}–${NY}`;
 
   // tabs
   const tabsHTML=["all",...keys].map(t=>{
@@ -1079,9 +1118,9 @@ function addBenefitRow(prefill){
         <div>
           <div style="font-size:11px;color:var(--text-3);margin-bottom:3px">Years</div>
           <select style="width:100%;padding:6px 8px;border:0.5px solid var(--border-med);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-size:12px;font-family:inherit;outline:none" data-field="years">
-            <option value="2026">2026 only</option>
-            <option value="2027">2027 only</option>
-            <option value="both" selected>2026 & 2027</option>
+            <option id="optY1" value="cy">Current year only</option>
+            <option id="optY2" value="ny">Next year only</option>
+            <option value="both" selected>Both years</option>
           </select>
         </div>
       </div>
@@ -1095,30 +1134,12 @@ function removeBenefitRow(id){
 }
 
 function buildPeriods(periodType, years){
-  const y26=years==="2026"||years==="both";
-  const y27=years==="2027"||years==="both";
-  const months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-  const quarters=["Q1","Q2","Q3","Q4"];
-  let periods=[];
-  if(periodType==="annual"){
-    if(y26)periods.push("2026");
-    if(y27)periods.push("2027");
-  } else if(periodType==="semester"){
-    if(y26)periods.push("Jan–Jun 2026","Jul–Dec 2026");
-    if(y27)periods.push("Jan–Jun 2027","Jul–Dec 2027");
-  } else if(periodType==="quarterly"){
-    if(y26)quarters.forEach(q=>periods.push(`${q} 2026`));
-    if(y27)quarters.forEach(q=>periods.push(`${q} 2027`));
-  } else if(periodType==="monthly"){
-    if(y26)months.forEach(m=>periods.push(`${m} 26`));
-    if(y27)months.forEach(m=>periods.push(`${m} 27`));
-  } else if(periodType==="per stay"){
-    if(y26)periods.push("Stay 1 (2026)","Stay 2 (2026)");
-    if(y27)periods.push("Stay 1 (2027)","Stay 2 (2027)");
-  } else if(periodType==="4-year"){
-    periods.push("2024–2028");
-  }
-  return periods;
+  const useY1 = years==="cy"  || years==="both";
+  const useY2 = years==="ny"  || years==="both";
+  const opts = {};
+  if(useY1 && !useY2) opts.singleYear = true;
+  if(!useY1 && useY2){ opts.startYear = NY; opts.endYear = NY; opts.singleYear = true; }
+  return dynPeriods(periodType, opts);
 }
 
 function saveCard(){
