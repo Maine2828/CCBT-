@@ -1030,8 +1030,21 @@ async function lookupCard(){
   status.innerHTML=`<div class="spinner"></div> ${isUrl?'Fetching page and reading benefits…':'Searching for matching cards…'}`;
   picker.style.display='none';
   const schema=`Return ONLY valid JSON (no markdown):
-{"matches":[{"name":"Full card name","short":"2-3 word name","issuer":"e.g. American Express","fee":250,"color":"#HEX","benefits":[{"name":"Benefit","desc":"Description","amount":50,"period":"annual|semester|quarterly|monthly|per stay|4-year","years":"both"}],"earningRates":[{"val":"3x","cat":"on dining"}],"perks":[{"title":"Section","items":["perk 1"]}]}]}
-Rules: only trackable dollar credits; amount=per-period value; color: Amex=#6B4FC8,Chase=#117E48,Citi=#1A5FA8,CapOne=#C0392B; return ONLY JSON`;
+{"matches":[{"name":"Full card name","short":"2-3 word name","issuer":"e.g. American Express","fee":250,"color":"#HEX","benefits":[{"name":"Benefit","desc":"Description","amount":10,"period":"monthly","years":"both"}],"earningRates":[{"val":"3x","cat":"on dining"}],"perks":[{"title":"Section","items":["perk 1"]}]}]}
+
+CRITICAL PERIOD RULES — you must follow these exactly:
+- If a benefit says "$120/year paid as $10/month" → amount:10, period:"monthly"
+- If a benefit says "$300/year paid as $25/month" → amount:25, period:"monthly"
+- If a benefit says "$200/year paid as $50/quarter" → amount:50, period:"quarterly"
+- If a benefit says "$400/year paid as $200 every 6 months" → amount:200, period:"semester"
+- If a benefit says "$300/year" with no breakdown → amount:300, period:"annual"
+- If a benefit says "$100 per stay" → amount:100, period:"per stay"
+- ALWAYS use the smallest recurring unit, NOT the annual total
+- amount = the dollar value per single period (never the annual total unless truly annual)
+- period must be one of: annual, semester, quarterly, monthly, per stay, 4-year
+- Only include benefits with a trackable dollar credit amount
+- color: Amex=#6B4FC8, Chase=#117E48, Citi=#1A5FA8, CapOne=#C0392B
+- Return ONLY the JSON object, nothing else`;
   const prompt=isUrl
     ?`You are a credit card benefits expert. Extract ALL benefits, earning rates, perks, annual fee from this card page. ${schema}`
     :`You are a credit card benefits expert. User searched "${name}". Return up to 3 matching cards, most likely first. ${schema}`;
