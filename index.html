@@ -8,26 +8,28 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="CCBT">
 <meta name="application-name" content="CCBT">
-<meta name="theme-color" content="#F7F6F3" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#141312" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#FAF7F2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1C2130" media="(prefers-color-scheme: dark)">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="apple-touch-icon" sizes="180x180" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAYAAAA9zQYyAAAC/UlEQVR42u3csU3DUBSGUW+BwiAIUTEALRIwRBZAzMQE7EODxAZQUSaOiZ337v9O8bWRfH2UwvZ90/XuauqgH0XU3BLAigIOsaJwQ6wo3CArCjbIioINs6JQg6wo2DArCjXMikINs6JQw6wo1DArCjXMikINs6JQw6wo1DArCjXQGga0wakcapgVhRpoxYM2KJVFDbSiQRuQSqMGWkBLFUAbjMqjBlpAS72DNhBFoAZaQEtAq6/2H6v8zm5/3x1oN3cEvKc2g/fUWl0r0CDPwl4CuTVsoGE+ivoczC1QAw3zwXavz6uAviRqoGE+jPmvQqiBhvk45mKogYZ5HnMh1EADDbQGxFwENdBAAy2ggRbQQAtooGHeCnMB1EBD7R9aQAMtoIEW0EADDbSg9i2HgAZavocGWjZWgIbaTqGgtvUt53I4l0NOTgJazrYDWkO1Gejvr0/paEALaKAFNNACGmgBLaBrg/ZoabyAFtBAC2igBTTQAhpooIEW0EALaKAFNNACGmiggRbQQAtooAX00ou4u73RYAEtoIEW0EALaKAFNNBAAy2ggRbQQAtooAU00EADLaCBFtBAC2igBbSABlpAAy2grWDJChbQAlpAAy2ggRbQQAtooAW0gM4F/fD+1jwIgQZaQAMNNNBAAw000EADLaCBFtBAAw000EB7UyiggRbQQAtoAQ20gO4b9MvTY1xAAw000EADDTTQQAMNNNBAAw000EAD7Tm0gAZaQAMtoN1goIEW0EALaKAFNNACWkADLaCBFtBAC2igBbSALg5aAlpAAy2ggVYA6AlohYCegBbQUqcBrUzQUKs8ZqAFtFQFNNQqjRloAS1VAg21ymIGWkOAhlolMQOtYUBDrXKY50BDrVKYgdZwoKFWGcyngoZaJTAvAQ21use8FDTU6hrzf0BDrW4x/xc01OoS8zmgoVZ3mM8FDbW6wrwGaKjVDea1QIOt5pC3AA21mmLeAjTYagJ5a9Bg66KQLwUabm2OuBVouCGOBQ04wJv0C9FT2jUmX6hHAAAAAElFTkSuQmCC">
-<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Card%20Benefits%20Tracker%22%2C%22short_name%22%3A%22Benefits%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23F7F6F3%22%2C%22theme_color%22%3A%22%231A1917%22%2C%22start_url%22%3A%22.%22%7D">
+<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Card%20Benefits%20Tracker%22%2C%22short_name%22%3A%22Benefits%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23FAF7F2%22%2C%22theme_color%22%3A%22%231A1917%22%2C%22start_url%22%3A%22.%22%7D">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-:root {
-  --bg:#F7F6F3; --surface:#FFFFFF; --surface2:#F0EEE9;
-  --border:rgba(0,0,0,0.09); --border-med:rgba(0,0,0,0.16);
-  --text:#1A1917; --text-2:#6B6760; --text-3:#A8A49E;
-  --green:#1A7A4A; --green-bg:#E8F5EE; --green-border:rgba(26,122,74,0.25);
+    18	:root {
+  /* ── Light mode: warm cream ── */
+  --bg:#FAF7F2; --surface:#FFFEFB; --surface2:#F2EDE4;
+  --border:rgba(0,0,0,0.08); --border-med:rgba(0,0,0,0.14);
+  --text:#1C1A17; --text-2:#5C5650; --text-3:#A09890;
+  --green:#1A7A4A; --green-bg:#E6F5EE; --green-border:rgba(26,122,74,0.22);
   --radius:10px; --radius-sm:6px;
   --safe-top:env(safe-area-inset-top,0px); --safe-bottom:env(safe-area-inset-bottom,0px);
 }
 @media(prefers-color-scheme:dark){:root{
-  --bg:#141312; --surface:#1E1D1B; --surface2:#272522;
-  --border:rgba(255,255,255,0.08); --border-med:rgba(255,255,255,0.14);
-  --text:#F0EDE8; --text-2:#9A9690; --text-3:#5C5A55;
-  --green:#4CAF7D; --green-bg:rgba(76,175,125,0.12); --green-border:rgba(76,175,125,0.3);
+  /* ── Dark mode: soft slate blue-gray ── */
+  --bg:#1C2130; --surface:#252D3D; --surface2:#2E3850;
+  --border:rgba(255,255,255,0.07); --border-med:rgba(255,255,255,0.13);
+  --text:#E8EBF2; --text-2:#8E97AD; --text-3:#4E5870;
+  --green:#4DC48A; --green-bg:rgba(77,196,138,0.12); --green-border:rgba(77,196,138,0.28);
 }}
 html{height:100%}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;font-size:16px;line-height:1.55;padding-top:var(--safe-top);padding-bottom:var(--safe-bottom);-webkit-text-size-adjust:100%}
@@ -44,6 +46,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,san
 .header-left h1{font-size:23px;font-weight:600;letter-spacing:-0.3px}
 .header-left p{font-size:14px;color:var(--text-2);margin-top:2px}
 .year-pill{font-size:13px;font-weight:500;color:var(--text-2);background:var(--surface);border:0.5px solid var(--border-med);border-radius:20px;padding:5px 12px}
+.year-switcher{display:flex;gap:3px;background:var(--surface2);border-radius:20px;padding:3px;border:0.5px solid var(--border);flex-shrink:0}
+.year-btn{padding:5px 13px;border-radius:16px;border:none;font-size:13px;font-weight:500;cursor:pointer;background:transparent;color:var(--text-3);transition:all .2s;font-family:inherit;-webkit-tap-highlight-color:transparent;white-space:nowrap}
+.year-btn.active{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,0.1)}
 
 .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.75rem}
 .sum-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:1rem 1.1rem}
@@ -203,6 +208,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,san
 .btn-manual{background:none;border:none;color:var(--text-3);font-size:13px;cursor:pointer;font-family:inherit;padding:4px 0;transition:color .15s}
 .btn-manual:hover{color:var(--text-2)}
 
+/* ── Lookup mode toggle ── */
+.lookup-mode-row{display:flex;gap:6px;margin-bottom:12px}
+.mode-btn{flex:1;padding:7px 10px;border-radius:var(--radius-sm);border:0.5px solid var(--border-med);font-size:13px;font-weight:500;cursor:pointer;background:var(--surface);color:var(--text-2);transition:all .15s;font-family:inherit;-webkit-tap-highlight-color:transparent}
+.mode-btn.active{background:var(--text);color:var(--bg);border-color:var(--text)}
+.url-hint{font-size:12px;color:var(--text-2);line-height:1.45;margin-bottom:8px;padding:8px 10px;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-sm)}
+
 /* ── Card picker ── */
 .picker-label{font-size:13px;font-weight:600;color:var(--text);margin:1rem 0 .6rem}
 .card-option{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:.75rem 1rem;background:var(--surface2);border:0.5px solid var(--border-med);border-radius:var(--radius-sm);margin-bottom:8px;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent}
@@ -220,6 +231,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,san
   .header-left h1{font-size:18px}
   .header-left p{font-size:12px}
   .year-pill{font-size:11px;padding:4px 9px;white-space:nowrap}
+  .year-btn{padding:4px 10px;font-size:12px}
 
   /* Summary: 2x2 grid, smaller values */
   .summary{grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1.25rem}
@@ -302,7 +314,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,san
       <h1>Credit Card Benefits Tracker</h1>
       <p id="cardSubtitle">Hilton Aspire · Chase Sapphire Reserve · Amex Platinum</p>
     </div>
-    <span class="year-pill" id="yearPill"></span>
+    <div class="year-switcher" id="yearSwitcher"></div>
   </div>
 
   <div class="summary" id="summary"></div>
@@ -330,12 +342,33 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,san
     <div id="stepLookup">
       <div class="ai-lookup-box">
         <div class="ai-lookup-icon">✦</div>
-        <div class="ai-lookup-desc">Type a card name and let AI fill in the benefits, earning rates, perks and annual fee automatically.</div>
-        <div class="ai-search-row">
-          <input type="text" id="aiCardName" placeholder="e.g. Delta Platinum American Express" autocomplete="off"
-            onkeydown="if(event.key==='Enter')lookupCard()" />
-          <button class="btn-primary" id="lookupBtn" onclick="lookupCard()">Look up</button>
+        <div class="ai-lookup-desc">Search by card name or paste the card's official benefits page URL for the most accurate and up-to-date details.</div>
+
+        <!-- Mode toggle -->
+        <div class="lookup-mode-row">
+          <button class="mode-btn active" id="modeBtnName" onclick="setLookupMode('name')">Card name</button>
+          <button class="mode-btn" id="modeBtnUrl" onclick="setLookupMode('url')">Benefits page URL</button>
         </div>
+
+        <!-- Card name input -->
+        <div id="inputName">
+          <div class="ai-search-row">
+            <input type="text" id="aiCardName" placeholder="e.g. Delta Platinum American Express" autocomplete="off"
+              onkeydown="if(event.key==='Enter')lookupCard()" />
+            <button class="btn-primary" id="lookupBtn" onclick="lookupCard()">Look up</button>
+          </div>
+        </div>
+
+        <!-- URL input -->
+        <div id="inputUrl" style="display:none">
+          <div class="url-hint">Go to your card issuer's website, find the card's benefits page, copy the URL and paste it here.</div>
+          <div class="ai-search-row">
+            <input type="url" id="aiCardUrl" placeholder="e.g. https://americanexpress.com/en-us/credit-cards/platinum-card/" autocomplete="off"
+              onkeydown="if(event.key==='Enter')lookupCard()" />
+            <button class="btn-primary" id="lookupBtnUrl" onclick="lookupCard()">Fetch</button>
+          </div>
+        </div>
+
         <div id="lookupStatus" class="lookup-status"></div>
       </div>
       <!-- Card picker (shown when multiple matches found) -->
@@ -713,11 +746,26 @@ function cardKeys(){return Object.keys(allCards())}
 
 function uk(id,p){return id+"::"+p}
 function getAmt(b){return b.customizable?(customVals[b.id]||0):b.amount}
-function cardTotal(k){const c=allCards()[k];return c.benefits.reduce((s,b)=>s+getAmt(b)*b.periods.length,0)}
-function cardClaimed(k){const c=allCards()[k];return c.benefits.reduce((s,b)=>s+b.periods.filter(p=>used[uk(b.id,p)]).length*getAmt(b),0)}
+function periodsForYear(b){
+  const ys=String(activeYear); const ys2=ys.slice(2);
+  if(b.period==="4-year") return b.periods;
+  return b.periods.filter(p=>p.includes(ys)||p.endsWith(ys2));
+}
+function cardTotal(k){const c=allCards()[k];return c.benefits.reduce((s,b)=>s+getAmt(b)*periodsForYear(b).length,0)}
+function cardClaimed(k){const c=allCards()[k];return c.benefits.reduce((s,b)=>s+periodsForYear(b).filter(p=>used[uk(b.id,p)]).length*getAmt(b),0)}
 function fmt(n){return"$"+Math.round(n).toLocaleString()}
 
 let activeTab="all";
+let activeYear=CY; // currently viewed year — defaults to current year
+
+function setYear(y){
+  activeYear=y;
+  // update switcher buttons
+  document.querySelectorAll('.year-btn').forEach(b=>{
+    b.classList.toggle('active', parseInt(b.dataset.year)===activeYear);
+  });
+  render();
+}
 function toggle(id,period){const k=uk(id,period);if(used[k])delete used[k];else used[k]=true;saveUsed();render()}
 function setCustom(id,val){const n=parseInt(val.replace(/\D/g,""),10);if(!isNaN(n)&&n>0)customVals[id]=n;else delete customVals[id];saveCustom();render()}
 function resetAll(){if(!confirm("Reset all tracked benefits? This can't be undone."))return;used={};customVals={};hiddenCards=[];saveUsed();saveCustom();saveHidden();render()}
@@ -749,8 +797,23 @@ function renderBenefit(b,cardKey){
   const cards=allCards();
   const card=cards[cardKey];
   const amt=getAmt(b);
-  const usedN=b.periods.filter(p=>used[uk(b.id,p)]).length;
-  const pct=b.periods.length?(usedN/b.periods.length*100):0;
+
+  // filter periods to active year only
+  const yearStr=String(activeYear);
+  const yearStr2=yearStr.slice(2); // e.g. "26"
+  const visiblePeriods=b.periods.filter(p=>{
+    // match "2026", "Jan–Jun 2026", "Q1 2026", "Jan 26", "Stay 1 (2026)", "2024–2028" (always show 4-year)
+    if(b.period==="4-year") return true;
+    return p.includes(yearStr) || p.endsWith(yearStr2);
+  });
+
+  // progress based on visible periods only
+  const usedN=visiblePeriods.filter(p=>used[uk(b.id,p)]).length;
+  const pct=visiblePeriods.length?(usedN/visiblePeriods.length*100):0;
+
+  // if no periods in this year, skip rendering this benefit
+  if(visiblePeriods.length===0) return '';
+
   const amtHTML=b.customizable
     ?`<span class="b-amount muted">${amt>0?fmt(amt)+" est.":"set value"}</span>`
     :`<span class="b-amount">${fmt(amt)}</span>`;
@@ -759,7 +822,7 @@ function renderBenefit(b,cardKey){
     <div class="custom-input-wrap"><span class="custom-prefix">$</span>
     <input class="custom-input" type="number" min="0" placeholder="e.g. 450" value="${customVals[b.id]||""}" oninput="setCustom('${b.id}',this.value)"/></div>
     <span class="custom-hint">varies by property</span></div>`:"";
-  const periods=b.periods.map(p=>{
+  const periodsHTML=visiblePeriods.map(p=>{
     const isUsed=!!used[uk(b.id,p)];
     const esc=p.replace(/'/g,"\\'");
     return`<button class="period-btn ${isUsed?"used":""}" onclick="toggle('${b.id}','${esc}')"><span>${isUsed?"✓":"○"}</span>${p}</button>`;
@@ -771,7 +834,7 @@ function renderBenefit(b,cardKey){
     </div>${customHTML}
     <div class="b-progress">
       <div class="progress-track"><div class="progress-fill" style="width:${pct}%;background:${card.color}"></div></div>
-      <div class="periods">${periods}</div>
+      <div class="periods">${periodsHTML}</div>
     </div></div>`;
 }
 
@@ -841,359 +904,7 @@ function renderPtsPanel(k,card){
   </div>`;
 }
 
-function totalPointsDollar(keys){
-  return keys.reduce((s,k)=>{
-    const d=getPoints(k);
-    return s+(parseFloat((d.dollarVal||'').replace(/[$,]/g,''))||0);
-  },0);
-}
 
-function render(){
-  const cards=allCards();
-  const keys=cardKeys();
-  const totAll=keys.reduce((s,k)=>s+cardTotal(k),0);
-  const clAll=keys.reduce((s,k)=>s+cardClaimed(k),0);
-  const feeAll=keys.reduce((s,k)=>s+cards[k].fee,0);
-
-  // subtitle
-  document.getElementById('cardSubtitle').textContent=keys.map(k=>cards[k].short).join(' · ');
-  const yp=document.getElementById('yearPill');if(yp)yp.textContent=`${CY}–${NY}`;
-
-  // tabs
-  const tabsHTML=["all",...keys].map(t=>{
-    const lbl=t==="all"?"All cards":cards[t].short;
-    const dot=t!=="all"?`<span class="dot" style="background:${cards[t].color}"></span>`:"";
-    return`<button class="tab ${activeTab===t?"active":""}" onclick="setTab('${t}')">${dot}${lbl}</button>`;
-  }).join("")+`<button class="tab-add" onclick="openModal()">+ Add card</button>`;
-  document.getElementById("tabs").innerHTML=tabsHTML;
-
-  // summary
-  let sumHTML;
-  if(activeTab==="all"){
-    const pct=totAll>0?Math.round(clAll/totAll*100):0;
-    const ptsDollarAll=totalPointsDollar(keys);
-    sumHTML=`<div class="sum-card"><div class="sum-label">Total credits available</div><div class="sum-val">${fmt(totAll)}</div><div class="sum-sub">across all ${keys.length} cards</div></div>
-      <div class="sum-card"><div class="sum-label">Credits claimed</div><div class="sum-val green">${fmt(clAll)}</div><div class="sum-sub">${pct}% of total used</div></div>
-      <div class="sum-card"><div class="sum-label">Net annual cost</div><div class="sum-val">${fmt(feeAll-clAll)}</div><div class="sum-sub">${fmt(feeAll)} fees − ${fmt(clAll)} credits</div></div>
-      <div class="sum-card"><div class="sum-label">Points value redeemed</div><div class="sum-val" style="color:#E8940A">${ptsDollarAll>0?'$'+ptsDollarAll.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2}):'—'}</div><div class="sum-sub">from points redemptions</div></div>`;
-  } else {
-    const t=cardTotal(activeTab),c=cardClaimed(activeTab),fee=cards[activeTab].fee;
-    const pct=t>0?Math.round(c/t*100):0;
-    const ptsDollar=totalPointsDollar([activeTab]);
-    sumHTML=`<div class="sum-card"><div class="sum-label">Credits available</div><div class="sum-val">${fmt(t)}</div><div class="sum-sub">total benefit value</div></div>
-      <div class="sum-card"><div class="sum-label">Claimed</div><div class="sum-val green">${fmt(c)}</div><div class="sum-sub">${pct}% used</div></div>
-      <div class="sum-card"><div class="sum-label">Net cost</div><div class="sum-val">${fmt(fee-c)}</div><div class="sum-sub">${fmt(fee)} fee − ${fmt(c)} credits</div></div>
-      <div class="sum-card"><div class="sum-label">Points value redeemed</div><div class="sum-val" style="color:#E8940A">${ptsDollar>0?'$'+ptsDollar.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2}):'—'}</div><div class="sum-sub">from points redemptions</div></div>`;
-  }
-  document.getElementById("summary").innerHTML=sumHTML;
-
-  // benefits
-  let bHTML="";
-  if(activeTab==="all"){
-    keys.forEach(k=>{
-      const card=cards[k];
-      const deleteBtn=`<button class="btn-ghost btn-danger" onclick="deleteCard('${k}')">Remove</button>`;
-      const rates=EARNING_RATES[k];
-      const ratesToggle=rates?`<button class="rates-toggle ${openRates[k]?'open':''}" id="rt_${k}" onclick="toggleRates('${k}')">
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Earning rates
-      </button>`:'';
-      const ratesRows=rates?rates.map(r=>`<div class="rate-val" style="color:${card.color}">${r.val}</div><div class="rate-cat">${r.cat}</div>`).join(''):'';
-      const ratesPanel=rates?`<div class="rates-panel ${openRates[k]?'open':''}" id="rp_${k}"><div class="rates-grid">${ratesRows}</div></div>`:'';
-      const perksPanel=renderPerksPanel(k,card);
-      const ptsPanel=renderPtsPanel(k,card);
-      const togglesRow=`<div class="toggles-row">${ratesToggle}${perksPanel.toggle}</div>${ratesPanel}${perksPanel.panel}${ptsPanel}`;
-      bHTML+=`<div class="section-head" style="color:${card.color};border-bottom-color:${card.color}">${card.name}<div class="section-head-actions">${deleteBtn}</div></div>${togglesRow}`;
-      bHTML+=card.benefits.map(b=>renderBenefit(b,k)).join("");
-    });
-  } else {
-    const card=cards[activeTab];
-    const rates=EARNING_RATES[activeTab];
-    const ratesToggle=rates?`<button class="rates-toggle ${openRates[activeTab]?'open':''}" id="rt_${activeTab}" onclick="toggleRates('${activeTab}')">
-      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Earning rates
-    </button>`:'';
-    const ratesRows=rates?rates.map(r=>`<div class="rate-val" style="color:${card.color}">${r.val}</div><div class="rate-cat">${r.cat}</div>`).join(''):'';
-    const ratesPanel=rates?`<div class="rates-panel ${openRates[activeTab]?'open':''}" id="rp_${activeTab}"><div class="rates-grid">${ratesRows}</div></div>`:'';
-    const perksPanel=renderPerksPanel(activeTab,card);
-    const ptsPanel=renderPtsPanel(activeTab,card);
-    bHTML+=`<div class="toggles-row">${ratesToggle}${perksPanel.toggle}</div>${ratesPanel}${perksPanel.panel}${ptsPanel}`;
-    bHTML+=card.benefits.map(b=>renderBenefit(b,activeTab)).join("");
-  }
-  document.getElementById("benefits").innerHTML=bHTML;
-
-  // footer fees
-  document.getElementById("footer-fees").innerHTML=keys.map(k=>`
-    <div class="fee-item"><div class="fee-num" style="color:${cards[k].color}">${fmt(cards[k].fee)}</div><div class="fee-lbl">${cards[k].short}</div></div>`).join("");
-}
-
-function setTab(t){activeTab=t;render()}
-
-// ── Modal ────────────────────────────────────────────────────────────────────
-let benefitRowCount=0;
-
-function openModal(){
-  selectedColor=PALETTE[4];
-  document.getElementById('aiCardName').value='';
-  document.getElementById('lookupStatus').textContent='';
-  document.getElementById('lookupStatus').className='lookup-status';
-  showLookupStep();
-  document.getElementById('modalBackdrop').classList.add('open');
-  setTimeout(()=>document.getElementById('aiCardName').focus(),100);
-}
-
-function showLookupStep(){
-  document.getElementById('stepLookup').style.display='';
-  document.getElementById('stepEdit').style.display='none';
-  document.getElementById('modalTitle').textContent='Add a card';
-  pendingAI=null;
-}
-
-function showManualStep(prefill){
-  benefitRowCount=0;
-  document.getElementById('mCardName').value=prefill?.name||'';
-  document.getElementById('mCardShort').value=prefill?.short||'';
-  document.getElementById('mCardFee').value=prefill?.fee!=null?prefill.fee:'';
-  if(prefill?.color){selectedColor=prefill.color;}else{selectedColor=PALETTE[4];}
-  renderColorPicker();
-  document.getElementById('benefitRows').innerHTML='';
-  if(prefill?.benefits&&prefill.benefits.length){
-    prefill.benefits.forEach(b=>addBenefitRow(b));
-  } else {
-    addBenefitRow();
-  }
-  document.getElementById('stepLookup').style.display='none';
-  document.getElementById('stepEdit').style.display='';
-  document.getElementById('modalTitle').textContent=prefill?.name?`Review: ${prefill.name}`:'Add a card';
-}
-
-async function lookupCard(){
-  const name=document.getElementById('aiCardName').value.trim();
-  if(!name)return;
-  const btn=document.getElementById('lookupBtn');
-  const status=document.getElementById('lookupStatus');
-  const picker=document.getElementById('cardPicker');
-  btn.disabled=true;
-  btn.textContent='Looking up…';
-  status.className='lookup-status';
-  status.innerHTML='<div class="spinner"></div> Searching for matching cards…';
-  picker.style.display='none';
-
-  const prompt=`You are a credit card benefits expert. The user searched for "${name}".
-
-Return ONLY valid JSON (no markdown, no explanation) with an array of up to 3 matching cards. If only one obvious match exists return just that one. Order by most likely match first.
-
-{
-  "matches": [
-    {
-      "name": "Full official card name",
-      "short": "2-3 word short name",
-      "issuer": "e.g. American Express",
-      "fee": 250,
-      "color": "#HEX matching issuer brand",
-      "benefits": [
-        {"name": "Benefit name","desc": "Short description","amount": 50,"period": "annual|semester|quarterly|monthly|per stay|4-year","years": "both"}
-      ],
-      "earningRates": [{"val": "3x","cat": "miles on Delta purchases"}],
-      "perks": [{"title": "Section title","items": ["perk 1","perk 2"]}]
-    }
-  ]
-}
-
-Rules:
-- Only include benefits with a trackable dollar credit amount
-- amount = per-period value (e.g. $25/month for a $300/yr monthly credit)
-- color: Amex=#6B4FC8, Chase=#117E48, Citi=#1A5FA8, Capital One=#C0392B, Delta/Amex=#003366
-- Return ONLY the JSON object, nothing else`;
-
-  try {
-    const res=await fetch('/.netlify/functions/ai-lookup',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({cardName:name,prompt})
-    });
-    const data=await res.json();
-    const text=data.content?.filter(c=>c.type==='text').map(c=>c.text).join('');
-    if(!text)throw new Error('No response from AI');
-
-    const clean=text.replace(/```json|```/gi,'').trim();
-    const result=JSON.parse(clean);
-    const matches=result.matches||[result];
-
-    if(matches.length===1){
-      status.className='lookup-status success';
-      status.innerHTML=`✓ Found <strong>${matches[0].name}</strong> — review and save below`;
-      btn.disabled=false;
-      btn.textContent='Look up';
-      pendingAI=matches[0];
-      setTimeout(()=>showManualStep(matches[0]),600);
-    } else {
-      status.innerHTML='';
-      status.className='lookup-status';
-      btn.disabled=false;
-      btn.textContent='Look up';
-      showCardPicker(matches);
-    }
-
-  } catch(err){
-    status.className='lookup-status error';
-    status.innerHTML=`Could not look up card. Check your connection and try again, or add manually.`;
-    btn.disabled=false;
-    btn.textContent='Look up';
-  }
-}
-
-function showCardPicker(matches){
-  const picker=document.getElementById('cardPicker');
-  const opts=document.getElementById('cardPickerOptions');
-  opts.innerHTML=matches.map((card,i)=>`
-    <div class="card-option" onclick="selectCard(${i})">
-      <span class="card-option-dot" style="background:${card.color}"></span>
-      <div class="card-option-left">
-        <div class="card-option-name">${card.name}</div>
-        <div class="card-option-meta">${card.issuer||''} · $${card.fee||0}/yr annual fee</div>
-      </div>
-      <span class="card-option-arrow">›</span>
-    </div>`).join('');
-  picker.style.display='';
-  picker._matches=matches;
-}
-
-function selectCard(idx){
-  const picker=document.getElementById('cardPicker');
-  const card=picker._matches[idx];
-  pendingAI=card;
-  const status=document.getElementById('lookupStatus');
-  status.className='lookup-status success';
-  status.innerHTML=`✓ Selected <strong>${card.name}</strong> — review and save below`;
-  setTimeout(()=>showManualStep(card),400);
-}
-
-function closeModal(){document.getElementById('modalBackdrop').classList.remove('open')}
-function handleBackdropClick(e){if(e.target===document.getElementById('modalBackdrop'))closeModal()}
-
-function renderColorPicker(){
-  document.getElementById('colorRow').innerHTML=PALETTE.map(c=>`
-    <div class="color-swatch ${c===selectedColor?'selected':''}" style="background:${c}" onclick="pickColor('${c}')"></div>`).join('');
-}
-
-function pickColor(c){selectedColor=c;renderColorPicker()}
-
-function addBenefitRow(prefill){
-  benefitRowCount++;
-  const id=`br${benefitRowCount}`;
-  const row=document.createElement('div');
-  row.className='benefit-row';
-  row.id=id;
-  const pName=prefill?.name||'';
-  const pDesc=prefill?.desc||'';
-  const pAmt=prefill?.amount!=null?prefill.amount:'';
-  const pPeriod=prefill?.period||'annual';
-  row.innerHTML=`
-    <div style="grid-column:1/-1">
-      <div class="benefit-row-top">
-        <span class="benefit-row-num">Benefit ${benefitRowCount}</span>
-        <button class="remove-benefit" onclick="removeBenefitRow('${id}')">×</button>
-      </div>
-      <div style="margin-top:6px">
-        <input type="text" placeholder="Benefit name (e.g. Travel Credit)" value="${pName.replace(/"/g,'&quot;')}" style="width:100%;padding:6px 8px;border:0.5px solid var(--border-med);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-size:12px;font-family:inherit;outline:none;margin-bottom:6px" data-field="name"/>
-        <input type="text" placeholder="Description" value="${pDesc.replace(/"/g,'&quot;')}" style="width:100%;padding:6px 8px;border:0.5px solid var(--border-med);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-size:12px;font-family:inherit;outline:none;margin-bottom:6px" data-field="desc"/>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:2px">
-        <div>
-          <div style="font-size:11px;color:var(--text-3);margin-bottom:3px">Amount ($)</div>
-          <input type="number" min="0" placeholder="e.g. 300" value="${pAmt}" style="width:100%;padding:6px 8px;border:0.5px solid var(--border-med);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-size:12px;font-family:inherit;outline:none" data-field="amount"/>
-        </div>
-        <div>
-          <div style="font-size:11px;color:var(--text-3);margin-bottom:3px">Period type</div>
-          <select style="width:100%;padding:6px 8px;border:0.5px solid var(--border-med);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-size:12px;font-family:inherit;outline:none" data-field="period">
-            <option value="annual" ${pPeriod==='annual'?'selected':''}>Annual</option>
-            <option value="semester" ${pPeriod==='semester'?'selected':''}>Semester</option>
-            <option value="quarterly" ${pPeriod==='quarterly'?'selected':''}>Quarterly</option>
-            <option value="monthly" ${pPeriod==='monthly'?'selected':''}>Monthly</option>
-            <option value="per stay" ${pPeriod==='per stay'?'selected':''}>Per stay</option>
-            <option value="4-year" ${pPeriod==='4-year'?'selected':''}>4-year</option>
-          </select>
-        </div>
-        <div>
-          <div style="font-size:11px;color:var(--text-3);margin-bottom:3px">Years</div>
-          <select style="width:100%;padding:6px 8px;border:0.5px solid var(--border-med);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-size:12px;font-family:inherit;outline:none" data-field="years">
-            <option id="optY1" value="cy">Current year only</option>
-            <option id="optY2" value="ny">Next year only</option>
-            <option value="both" selected>Both years</option>
-          </select>
-        </div>
-      </div>
-    </div>`;
-  document.getElementById('benefitRows').appendChild(row);
-}
-
-function removeBenefitRow(id){
-  const el=document.getElementById(id);
-  if(el)el.remove();
-}
-
-function buildPeriods(periodType, years){
-  const useY1 = years==="cy"  || years==="both";
-  const useY2 = years==="ny"  || years==="both";
-  const opts = {};
-  if(useY1 && !useY2) opts.singleYear = true;
-  if(!useY1 && useY2){ opts.startYear = NY; opts.endYear = NY; opts.singleYear = true; }
-  return dynPeriods(periodType, opts);
-}
-
-function saveCard(){
-  const name=document.getElementById('mCardName').value.trim();
-  const short=document.getElementById('mCardShort').value.trim()||name.split(' ').slice(-1)[0];
-  const fee=parseInt(document.getElementById('mCardFee').value)||0;
-  if(!name){alert("Please enter a card name.");return}
-
-  const rows=document.getElementById('benefitRows').querySelectorAll('.benefit-row');
-  const benefits=[];
-  let bIdx=0;
-  rows.forEach(row=>{
-    const bName=row.querySelector('[data-field="name"]').value.trim();
-    const bDesc=row.querySelector('[data-field="desc"]').value.trim();
-    const bAmt=parseFloat(row.querySelector('[data-field="amount"]').value)||0;
-    const bPeriod=row.querySelector('[data-field="period"]').value;
-    const bYears=row.querySelector('[data-field="years"]').value;
-    if(!bName)return;
-    bIdx++;
-    const cardKey=name.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'');
-    benefits.push({
-      id:`${cardKey}_b${bIdx}`,
-      name:bName, desc:bDesc||bName,
-      amount:bAmt, period:bPeriod,
-      periods:buildPeriods(bPeriod,bYears)
-    });
-  });
-
-  if(benefits.length===0){alert("Please add at least one benefit.");return}
-
-  const cardKey=name.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'')+`_${Date.now()}`;
-  const cardObj={
-    name, short, color:selectedColor,
-    bg:hexToBg(selectedColor),
-    fee, builtin:false, benefits
-  };
-  // attach AI-returned earning rates and perks if available
-  if(pendingAI?.earningRates) cardObj.earningRates=pendingAI.earningRates;
-  if(pendingAI?.perks) cardObj.perks=pendingAI.perks;
-  pendingAI=null;
-  extraCards[cardKey]=cardObj;
-  // register dynamic earning rates & perks so dropdowns work immediately
-  if(cardObj.earningRates) EARNING_RATES[cardKey]=cardObj.earningRates;
-  if(cardObj.perks) CARD_PERKS[cardKey]={sections:cardObj.perks};
-  saveExtra();
-  closeModal();
-  activeTab=cardKey;
-  render();
-}
-
-// store AI result temporarily until saveCard is called
-let pendingAI=null;
-
-render();
 </script>
 </body>
 </html>
