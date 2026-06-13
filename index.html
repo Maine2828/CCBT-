@@ -931,6 +931,7 @@ function render(){
     keys.forEach(k=>{
       const card=cards[k];
       const deleteBtn=`<button class="btn-ghost btn-danger" onclick="deleteCard('${k}')">Remove</button>`;
+      const editBtn=`<button class="btn-ghost" onclick="editCard('${k}')">Edit</button>`;
       const rates=EARNING_RATES[k];
       const ratesToggle=rates?`<button class="rates-toggle ${openRates[k]?'open':''}" id="rt_${k}" onclick="toggleRates('${k}')">
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -941,7 +942,7 @@ function render(){
       const perksPanel=renderPerksPanel(k,card);
       const ptsPanel=renderPtsPanel(k,card);
       const togglesRow=`<div class="toggles-row">${ratesToggle}${perksPanel.toggle}</div>${ratesPanel}${perksPanel.panel}${ptsPanel}`;
-      bHTML+=`<div class="section-head" style="color:${card.color};border-bottom-color:${card.color}">${card.name}<div class="section-head-actions">${deleteBtn}</div></div>${togglesRow}`;
+      bHTML+=`<div class="section-head" style="color:${card.color};border-bottom-color:${card.color}">${card.name}<div class="section-head-actions">${editBtn}${deleteBtn}</div></div>${togglesRow}`;
       bHTML+=card.benefits.map(b=>renderBenefit(b,k)).join("");
     });
   } else {
@@ -1095,7 +1096,7 @@ function selectCard(idx){
   status.innerHTML=`✓ Selected <strong>${card.name}</strong> — review and save below`;
   setTimeout(()=>showManualStep(card),400);
 }
-function closeModal(){document.getElementById('modalBackdrop').classList.remove('open')}
+function closeModal(){document.getElementById('modalBackdrop').classList.remove('open'); editingCardKey=null;}
 function handleBackdropClick(e){if(e.target===document.getElementById('modalBackdrop'))closeModal()}
 
 function renderColorPicker(){
@@ -1186,6 +1187,58 @@ function buildPeriods(periodType, years){
   return periods;
 }
 
+
+// store AI result temporarily until saveCard is called
+let pendingAI=null;
+let editingCardKey=null; // set when editing an existing card
+
+function editCard(key){
+  const cards=allCards();
+  const card=cards[key];
+  if(!card) return;
+  editingCardKey=key;
+
+  // build prefill from existing card data
+  const prefill={
+    name: card.name,
+    short: card.short,
+    fee: card.fee,
+    color: card.color,
+    earningRates: card.earningRates||EARNING_RATES[key]||null,
+    perks: card.perks||(CARD_PERKS[key]?.sections)||null,
+    benefits: card.benefits.map(b=>{
+      // reverse-engineer period type and years from stored periods
+      const p=b.periods[0]||'';
+      let period=b.period||'annual';
+      let years='both';
+      // detect single-year by checking if all periods share same year
+      const allYears=new Set(b.periods.map(p2=>{
+        const m=p2.match(/\b(20\d\d)\b/);
+        if(m) return m[1];
+        const m2=p2.match(/\b(\d{2})$/);
+        if(m2) return '20'+m2[1];
+        return null;
+      }).filter(Boolean));
+      if(allYears.size===1){
+        const yr=[...allYears][0];
+        years=yr===String(CY)?'cy':yr===String(NY)?'ny':'both';
+      }
+      return {name:b.name, desc:b.desc, amount:b.amount, period, years, customizable:b.customizable||false};
+    })
+  };
+
+  // open modal in edit mode skipping the lookup step
+  selectedColor=card.color||PALETTE[4];
+  document.getElementById('aiCardName').value='';
+  if(document.getElementById('aiCardUrl')) document.getElementById('aiCardUrl').value='';
+  document.getElementById('lookupStatus').textContent='';
+  document.getElementById('lookupStatus').className='lookup-status';
+  setLookupMode('name');
+  document.getElementById('modalBackdrop').classList.add('open');
+  document.getElementById('modalTitle').textContent=`Edit: ${card.name}`;
+  showManualStep(prefill);
+}
+
 function saveCard(){
   const name=document.getElementById('mCardName').value.trim();
   const short=document.getElementById('mCardShort').value.trim()||name.split(' ').slice(-1)[0];
@@ -1203,9 +1256,9 @@ function saveCard(){
     const bYears=row.querySelector('[data-field="years"]').value;
     if(!bName)return;
     bIdx++;
-    const cardKey=name.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'');
+    const baseKey=name.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'');
     benefits.push({
-      id:`${cardKey}_b${bIdx}`,
+      id:`${baseKey}_b${bIdx}`,
       name:bName, desc:bDesc||bName,
       amount:bAmt, period:bPeriod,
       periods:buildPeriods(bPeriod,bYears)
@@ -1214,30 +1267,55 @@ function saveCard(){
 
   if(benefits.length===0){alert("Please add at least one benefit.");return}
 
-  const cardKey=name.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'')+`_${Date.now()}`;
-  const cardObj={
-    name, short, color:selectedColor,
-    bg:hexToBg(selectedColor),
-    fee, builtin:false, benefits
-  };
-  // attach AI-returned earning rates and perks if available
-  if(pendingAI?.earningRates) cardObj.earningRates=pendingAI.earningRates;
-  if(pendingAI?.perks) cardObj.perks=pendingAI.perks;
+  if(editingCardKey){
+    // ── UPDATE existing card ──
+    const existing=allCards()[editingCardKey];
+    const updated={
+      ...existing,
+      name, short, color:selectedColor,
+      bg:hexToBg(selectedColor),
+      fee, benefits
+    };
+    if(pendingAI?.earningRates) updated.earningRates=pendingAI.earningRates;
+    if(pendingAI?.perks)        updated.perks=pendingAI.perks;
+
+    // update in the right store
+    if(BUILTIN_CARDS[editingCardKey]){
+      // built-in card — store override in extraCards, hide original
+      if(!hiddenCards.includes(editingCardKey)) hiddenCards.push(editingCardKey);
+      saveHidden();
+      const newKey=editingCardKey+'_edited';
+      updated.builtin=false;
+      extraCards[newKey]=updated;
+      if(updated.earningRates) EARNING_RATES[newKey]=updated.earningRates;
+      if(updated.perks)        CARD_PERKS[newKey]={sections:updated.perks};
+      saveExtra();
+      activeTab=newKey;
+    } else {
+      extraCards[editingCardKey]=updated;
+      if(updated.earningRates) EARNING_RATES[editingCardKey]=updated.earningRates;
+      if(updated.perks)        CARD_PERKS[editingCardKey]={sections:updated.perks};
+      saveExtra();
+      activeTab=editingCardKey;
+    }
+    editingCardKey=null;
+  } else {
+    // ── CREATE new card ──
+    const cardKey=name.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'')+`_${Date.now()}`;
+    const cardObj={name, short, color:selectedColor, bg:hexToBg(selectedColor), fee, builtin:false, benefits};
+    if(pendingAI?.earningRates) cardObj.earningRates=pendingAI.earningRates;
+    if(pendingAI?.perks)        cardObj.perks=pendingAI.perks;
+    extraCards[cardKey]=cardObj;
+    if(cardObj.earningRates) EARNING_RATES[cardKey]=cardObj.earningRates;
+    if(cardObj.perks)        CARD_PERKS[cardKey]={sections:cardObj.perks};
+    saveExtra();
+    activeTab=cardKey;
+  }
+
   pendingAI=null;
-  extraCards[cardKey]=cardObj;
-  // register dynamic earning rates & perks so dropdowns work immediately
-  if(cardObj.earningRates) EARNING_RATES[cardKey]=cardObj.earningRates;
-  if(cardObj.perks) CARD_PERKS[cardKey]={sections:cardObj.perks};
-  saveExtra();
   closeModal();
-  activeTab=cardKey;
   render();
 }
-
-// store AI result temporarily until saveCard is called
-let pendingAI=null;
-
-render();
 </script>
 </body>
 </html>
