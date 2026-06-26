@@ -1262,6 +1262,8 @@ function addBenefitRow(prefill){
   const row=document.createElement('div');
   row.className='benefit-row';
   row.id=id;
+  // preserve original benefit ID so tracking data survives edits
+  if(prefill?._originalId) row.dataset.originalId=prefill._originalId;
   const pName=prefill?.name||'';
   const pDesc=prefill?.desc||'';
   const pAmt=prefill?.amount!=null?prefill.amount:'';
@@ -1350,7 +1352,7 @@ function editCard(key){
   if(!card) return;
   editingCardKey=key;
 
-  // build prefill from existing card data
+  // build prefill — preserve original benefit IDs so tracking data is not lost
   const prefill={
     name: card.name,
     short: card.short,
@@ -1359,27 +1361,30 @@ function editCard(key){
     earningRates: card.earningRates||EARNING_RATES[key]||null,
     perks: card.perks||(CARD_PERKS[key]?.sections)||null,
     benefits: card.benefits.map(b=>{
-      // reverse-engineer period type and years from stored periods
-      const p=b.periods[0]||'';
-      let period=b.period||'annual';
       let years='both';
-      // detect single-year by checking if all periods share same year
-      const allYears=new Set(b.periods.map(p2=>{
-        const m=p2.match(/\b(20\d\d)\b/);
-        if(m) return m[1];
-        const m2=p2.match(/\b(\d{2})$/);
-        if(m2) return '20'+m2[1];
-        return null;
-      }).filter(Boolean));
-      if(allYears.size===1){
-        const yr=[...allYears][0];
-        years=yr===String(CY)?'cy':yr===String(NY)?'ny':'both';
+      if(b.periods && b.periods.length){
+        const allYears=new Set(b.periods.map(p2=>{
+          const m=p2.match(/\b(20\d\d)\b/);
+          if(m) return m[1];
+          const m2=p2.match(/\b(\d{2})$/);
+          if(m2) return '20'+m2[1];
+          return null;
+        }).filter(Boolean));
+        if(allYears.size===1){
+          const yr=[...allYears][0];
+          years=yr===String(CY)?'cy':yr===String(NY)?'ny':'both';
+        }
       }
-      return {name:b.name, desc:b.desc, amount:b.amount, period, years, customizable:b.customizable||false};
+      return {
+        _originalId: b.id,  // ← preserve original ID
+        name:b.name, desc:b.desc, amount:b.amount,
+        period:b.period||'annual', years,
+        customizable:b.customizable||false,
+        perUse:b.perUse||false, maxUses:b.maxUses||null
+      };
     })
   };
 
-  // open modal in edit mode skipping the lookup step
   selectedColor=card.color||PALETTE[4];
   document.getElementById('aiCardName').value='';
   if(document.getElementById('aiCardUrl')) document.getElementById('aiCardUrl').value='';
@@ -1400,6 +1405,8 @@ function saveCard(){
   const rows=document.getElementById('benefitRows').querySelectorAll('.benefit-row');
   const benefits=[];
   let bIdx=0;
+  const baseKey=name.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'');
+
   rows.forEach(row=>{
     const bName=row.querySelector('[data-field="name"]').value.trim();
     const bDesc=row.querySelector('[data-field="desc"]').value.trim();
@@ -1408,10 +1415,12 @@ function saveCard(){
     const bYears=row.querySelector('[data-field="years"]').value;
     if(!bName)return;
     bIdx++;
-    const baseKey=name.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'');
     const isPerVisit=bPeriod==="per visit";
+    // use _originalId from data attribute if editing, otherwise generate new
+    const originalId=row.dataset.originalId||null;
+    const benefitId=originalId||`${baseKey}_b${bIdx}_${Date.now()}`;
     benefits.push({
-      id:`${baseKey}_b${bIdx}`,
+      id:benefitId,
       name:bName, desc:bDesc||bName,
       amount:bAmt, period:bPeriod,
       periods:buildPeriods(bPeriod,bYears),
@@ -1433,9 +1442,9 @@ function saveCard(){
     if(pendingAI?.earningRates) updated.earningRates=pendingAI.earningRates;
     if(pendingAI?.perks)        updated.perks=pendingAI.perks;
 
-    // update in the right store
     if(BUILTIN_CARDS[editingCardKey]){
-      // built-in card — store override in extraCards, hide original
+      // built-in card — store override in extraCards using SAME key pattern
+      // so tracking data keys (h1, h2 etc) are preserved in the benefits array
       if(!hiddenCards.includes(editingCardKey)) hiddenCards.push(editingCardKey);
       saveHidden();
       const newKey=editingCardKey+'_edited';
@@ -1443,6 +1452,8 @@ function saveCard(){
       extraCards[newKey]=updated;
       if(updated.earningRates) EARNING_RATES[newKey]=updated.earningRates;
       if(updated.perks)        CARD_PERKS[newKey]={sections:updated.perks};
+      // ── Migrate tracking data from old benefit IDs to new key ──
+      // (benefit IDs are preserved so used/customVals/perUseData keys are unchanged)
       saveExtra();
       activeTab=newKey;
     } else {
@@ -1455,7 +1466,7 @@ function saveCard(){
     editingCardKey=null;
   } else {
     // ── CREATE new card ──
-    const cardKey=name.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'')+`_${Date.now()}`;
+    const cardKey=baseKey+`_${Date.now()}`;
     const cardObj={name, short, color:selectedColor, bg:hexToBg(selectedColor), fee, builtin:false, benefits};
     if(pendingAI?.earningRates) cardObj.earningRates=pendingAI.earningRates;
     if(pendingAI?.perks)        cardObj.perks=pendingAI.perks;
