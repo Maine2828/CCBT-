@@ -50,7 +50,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,san
 .year-btn{padding:5px 13px;border-radius:16px;border:none;font-size:13px;font-weight:500;cursor:pointer;background:transparent;color:var(--text-3);transition:all .2s;font-family:inherit;-webkit-tap-highlight-color:transparent;white-space:nowrap}
 .year-btn.active{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,0.1)}
 
-.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.75rem}
+.summary{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:1.75rem}
 .sum-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:1rem 1.1rem}
 .sum-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:4px}
 .sum-val{font-size:26px;font-weight:600;letter-spacing:-0.5px}
@@ -728,6 +728,14 @@ function perUseTotalForCard(k){
   },0);
 }
 
+function totalLoungeValue(keys){
+  return keys.reduce((s,k)=>s+perUseTotalForCard(k),0);
+}
+
+function fmtVal(n){
+  return n>0?'$'+Math.round(n).toLocaleString():'—';
+}
+
 function refreshSummary(){
   const cards=allCards();
   const keys=cardKeys();
@@ -735,31 +743,35 @@ function refreshSummary(){
   const clAll=keys.reduce((s,k)=>s+cardClaimed(k),0);
   const feeAll=keys.reduce((s,k)=>s+cards[k].fee,0);
   const ptsDollarAll=totalPointsDollar(keys);
+  const loungeAll=totalLoungeValue(keys);
   const sumEl=document.getElementById('summary');
   if(!sumEl) return;
   if(activeTab==="all"){
-    const pct=totAll>0?Math.round(clAll/totAll*100):0;
-    sumEl.innerHTML=summaryHTML_all(totAll,clAll,feeAll,ptsDollarAll,keys.length);
+    sumEl.innerHTML=summaryHTML_all(totAll,clAll,feeAll,ptsDollarAll,loungeAll,keys.length);
   } else {
     const t=cardTotal(activeTab),c=cardClaimed(activeTab),fee=cards[activeTab].fee;
     const ptsDollar=totalPointsDollar([activeTab]);
-    sumEl.innerHTML=summaryHTML_single(t,c,fee,ptsDollar);
+    const lounge=totalLoungeValue([activeTab]);
+    sumEl.innerHTML=summaryHTML_single(t,c,fee,ptsDollar,lounge);
   }
 }
 
-function summaryHTML_all(totAll,clAll,feeAll,ptsDollarAll,cardCount){
+function summaryHTML_all(totAll,clAll,feeAll,ptsDollarAll,loungeAll,cardCount){
   const pct=totAll>0?Math.round(clAll/totAll*100):0;
   return `<div class="sum-card"><div class="sum-label">Total credits available</div><div class="sum-val">${fmt(totAll)}</div><div class="sum-sub">across all ${cardCount} cards</div></div>
     <div class="sum-card"><div class="sum-label">Credits claimed</div><div class="sum-val green">${fmt(clAll)}</div><div class="sum-sub">${pct}% of total used</div></div>
     <div class="sum-card"><div class="sum-label">Net annual cost</div><div class="sum-val">${fmt(feeAll-clAll)}</div><div class="sum-sub">${fmt(feeAll)} fees \u2212 ${fmt(clAll)} credits</div></div>
-    <div class="sum-card"><div class="sum-label">Points value redeemed</div><div class="sum-val" style="color:#E8940A">${ptsDollarAll>0?'$'+ptsDollarAll.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2}):'—'}</div><div class="sum-sub">from points redemptions</div></div>`;
+    <div class="sum-card"><div class="sum-label">Lounge value</div><div class="sum-val" style="color:#1A6EBD">${fmtVal(loungeAll)}</div><div class="sum-sub">est. value from lounge visits</div></div>
+    <div class="sum-card"><div class="sum-label">Points value redeemed</div><div class="sum-val" style="color:#E8940A">${fmtVal(ptsDollarAll)}</div><div class="sum-sub">from points redemptions</div></div>`;
 }
-function summaryHTML_single(t,c,fee,ptsDollar){
+
+function summaryHTML_single(t,c,fee,ptsDollar,lounge){
   const pct=t>0?Math.round(c/t*100):0;
   return `<div class="sum-card"><div class="sum-label">Credits available</div><div class="sum-val">${fmt(t)}</div><div class="sum-sub">total benefit value</div></div>
     <div class="sum-card"><div class="sum-label">Claimed</div><div class="sum-val green">${fmt(c)}</div><div class="sum-sub">${pct}% used</div></div>
     <div class="sum-card"><div class="sum-label">Net cost</div><div class="sum-val">${fmt(fee-c)}</div><div class="sum-sub">${fmt(fee)} fee \u2212 ${fmt(c)} credits</div></div>
-    <div class="sum-card"><div class="sum-label">Points value redeemed</div><div class="sum-val" style="color:#E8940A">${ptsDollar>0?'$'+ptsDollar.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2}):'—'}</div><div class="sum-sub">from points redemptions</div></div>`;
+    <div class="sum-card"><div class="sum-label">Lounge value</div><div class="sum-val" style="color:#1A6EBD">${fmtVal(lounge)}</div><div class="sum-sub">est. value from lounge visits</div></div>
+    <div class="sum-card"><div class="sum-label">Points value redeemed</div><div class="sum-val" style="color:#E8940A">${fmtVal(ptsDollar)}</div><div class="sum-sub">from points redemptions</div></div>`;
 }
 
 const PK="cbt_points_v7";
@@ -777,23 +789,17 @@ function setPoints(k,field,val){
   const totAll=keys.reduce((s,k)=>s+cardTotal(k),0);
   const clAll=keys.reduce((s,k)=>s+cardClaimed(k),0);
   const feeAll=keys.reduce((s,k)=>s+cards[k].fee,0);
-  const pct=totAll>0?Math.round(clAll/totAll*100):0;
   const sumEl=document.getElementById('summary');
   if(!sumEl)return;
   if(activeTab==="all"){
     const ptsDollarAll=totalPointsDollar(keys);
-    sumEl.innerHTML=`<div class="sum-card"><div class="sum-label">Total credits available</div><div class="sum-val">${fmt(totAll)}</div><div class="sum-sub">across all ${keys.length} cards</div></div>
-      <div class="sum-card"><div class="sum-label">Credits claimed</div><div class="sum-val green">${fmt(clAll)}</div><div class="sum-sub">${pct}% of total used</div></div>
-      <div class="sum-card"><div class="sum-label">Net annual cost</div><div class="sum-val">${fmt(feeAll-clAll)}</div><div class="sum-sub">${fmt(feeAll)} fees − ${fmt(clAll)} credits</div></div>
-      <div class="sum-card"><div class="sum-label">Points value redeemed</div><div class="sum-val" style="color:#E8940A">${ptsDollarAll>0?'$'+ptsDollarAll.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2}):'—'}</div><div class="sum-sub">from points redemptions</div></div>`;
+    const loungeAll=totalLoungeValue(keys);
+    sumEl.innerHTML=summaryHTML_all(totAll,clAll,feeAll,ptsDollarAll,loungeAll,keys.length);
   } else {
     const t=cardTotal(activeTab),c=cardClaimed(activeTab),fee=cards[activeTab].fee;
-    const pct2=t>0?Math.round(c/t*100):0;
     const ptsDollar=totalPointsDollar([activeTab]);
-    sumEl.innerHTML=`<div class="sum-card"><div class="sum-label">Credits available</div><div class="sum-val">${fmt(t)}</div><div class="sum-sub">total benefit value</div></div>
-      <div class="sum-card"><div class="sum-label">Claimed</div><div class="sum-val green">${fmt(c)}</div><div class="sum-sub">${pct2}% used</div></div>
-      <div class="sum-card"><div class="sum-label">Net cost</div><div class="sum-val">${fmt(fee-c)}</div><div class="sum-sub">${fmt(fee)} fee − ${fmt(c)} credits</div></div>
-      <div class="sum-card"><div class="sum-label">Points value redeemed</div><div class="sum-val" style="color:#E8940A">${ptsDollar>0?'$'+ptsDollar.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2}):'—'}</div><div class="sum-sub">from points redemptions</div></div>`;
+    const lounge=totalLoungeValue([activeTab]);
+    sumEl.innerHTML=summaryHTML_single(t,c,fee,ptsDollar,lounge);
   }
 }
 function updatePtsSummary(k){
@@ -1058,11 +1064,13 @@ function render(){
   let sumHTML;
   if(activeTab==="all"){
     const ptsDollarAll=totalPointsDollar(keys);
-    sumHTML=summaryHTML_all(totAll,clAll,feeAll,ptsDollarAll,keys.length);
+    const loungeAll=totalLoungeValue(keys);
+    sumHTML=summaryHTML_all(totAll,clAll,feeAll,ptsDollarAll,loungeAll,keys.length);
   } else {
     const t=cardTotal(activeTab),c=cardClaimed(activeTab),fee=cards[activeTab].fee;
     const ptsDollar=totalPointsDollar([activeTab]);
-    sumHTML=summaryHTML_single(t,c,fee,ptsDollar);
+    const lounge=totalLoungeValue([activeTab]);
+    sumHTML=summaryHTML_single(t,c,fee,ptsDollar,lounge);
   }
   document.getElementById("summary").innerHTML=sumHTML;
 
@@ -1176,17 +1184,18 @@ async function lookupCard(){
   const schema=`Return ONLY valid JSON (no markdown):
 {"matches":[{"name":"Full card name","short":"2-3 word name","issuer":"e.g. American Express","fee":250,"color":"#HEX","benefits":[{"name":"Benefit","desc":"Description","amount":10,"period":"monthly","years":"both"}],"earningRates":[{"val":"3x","cat":"on dining"}],"perks":[{"title":"Section","items":["perk 1"]}]}]}
 
-CRITICAL PERIOD RULES — you must follow these exactly:
-- If a benefit says "$120/year paid as $10/month" → amount:10, period:"monthly"
-- If a benefit says "$300/year paid as $25/month" → amount:25, period:"monthly"
-- If a benefit says "$200/year paid as $50/quarter" → amount:50, period:"quarterly"
-- If a benefit says "$400/year paid as $200 every 6 months" → amount:200, period:"semester"
-- If a benefit says "$300/year" with no breakdown → amount:300, period:"annual"
-- If a benefit says "$100 per stay" → amount:100, period:"per stay"
-- ALWAYS use the smallest recurring unit, NOT the annual total
-- amount = the dollar value per single period (never the annual total unless truly annual)
-- period must be one of: annual, semester, quarterly, monthly, per stay, 4-year
-- Only include benefits with a trackable dollar credit amount
+CRITICAL PERIOD RULES — follow exactly:
+- "$120/year paid as $10/month" → amount:10, period:"monthly"
+- "$300/year paid as $25/month" → amount:25, period:"monthly"
+- "$200/year paid as $50/quarter" → amount:50, period:"quarterly"
+- "$400/year paid as $200 every 6 months" → amount:200, period:"semester"
+- "$300/year" with no breakdown → amount:300, period:"annual"
+- "$100 per stay" → amount:100, period:"per stay"
+- LOUNGE ACCESS (any mention of airport lounges, Centurion, Priority Pass, Club, Sky Club, etc.) → ALWAYS create a separate benefit entry with period:"per visit", amount=estimated value per visit (e.g. 50 for standard lounges, 75 for premium like Centurion), perUse:true. Add maxUses only if explicitly capped (e.g. Delta Sky Club cap=10). Example: {"name":"Priority Pass Lounge Visits","desc":"Unlimited visits via Priority Pass Select","amount":35,"period":"per visit","years":"both"}
+- ALWAYS use smallest recurring unit, NOT annual total
+- amount = dollar value per single period
+- period must be one of: annual, semester, quarterly, monthly, per stay, 4-year, per visit
+- Only include benefits with a trackable dollar credit amount or lounge access
 - color: Amex=#6B4FC8, Chase=#117E48, Citi=#1A5FA8, CapOne=#C0392B
 - Return ONLY the JSON object, nothing else`;
   const prompt=isUrl
@@ -1281,6 +1290,7 @@ function addBenefitRow(prefill){
             <option value="monthly" ${pPeriod==='monthly'?'selected':''}>Monthly</option>
             <option value="per stay" ${pPeriod==='per stay'?'selected':''}>Per stay</option>
             <option value="4-year" ${pPeriod==='4-year'?'selected':''}>4-year</option>
+            <option value="per visit" ${pPeriod==='per visit'?'selected':''}>Per visit (lounge / usage counter)</option>
           </select>
         </div>
         <div>
@@ -1302,28 +1312,29 @@ function removeBenefitRow(id){
 }
 
 function buildPeriods(periodType, years){
-  const y26=years==="2026"||years==="both";
-  const y27=years==="2027"||years==="both";
+  if(periodType==="per visit") return []; // per-use counter — no fixed periods
+  const y26=years==="2026"||years==="both"||years==="cy";
+  const y27=years==="2027"||years==="both"||years==="ny";
   const months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   const quarters=["Q1","Q2","Q3","Q4"];
   let periods=[];
   if(periodType==="annual"){
-    if(y26)periods.push("2026");
-    if(y27)periods.push("2027");
+    if(y26)periods.push(String(CY));
+    if(y27)periods.push(String(NY));
   } else if(periodType==="semester"){
-    if(y26)periods.push("Jan–Jun 2026","Jul–Dec 2026");
-    if(y27)periods.push("Jan–Jun 2027","Jul–Dec 2027");
+    if(y26)periods.push(`Jan\u2013Jun ${CY}`,`Jul\u2013Dec ${CY}`);
+    if(y27)periods.push(`Jan\u2013Jun ${NY}`,`Jul\u2013Dec ${NY}`);
   } else if(periodType==="quarterly"){
-    if(y26)quarters.forEach(q=>periods.push(`${q} 2026`));
-    if(y27)quarters.forEach(q=>periods.push(`${q} 2027`));
+    if(y26)quarters.forEach(q=>periods.push(`${q} ${CY}`));
+    if(y27)quarters.forEach(q=>periods.push(`${q} ${NY}`));
   } else if(periodType==="monthly"){
-    if(y26)months.forEach(m=>periods.push(`${m} 26`));
-    if(y27)months.forEach(m=>periods.push(`${m} 27`));
+    if(y26)months.forEach(m=>periods.push(`${m} ${CY2}`));
+    if(y27)months.forEach(m=>periods.push(`${m} ${NY2}`));
   } else if(periodType==="per stay"){
-    if(y26)periods.push("Stay 1 (2026)","Stay 2 (2026)");
-    if(y27)periods.push("Stay 1 (2027)","Stay 2 (2027)");
+    if(y26)periods.push(`Stay 1 (${CY})`,`Stay 2 (${CY})`);
+    if(y27)periods.push(`Stay 1 (${NY})`,`Stay 2 (${NY})`);
   } else if(periodType==="4-year"){
-    periods.push("2024–2028");
+    periods.push(`${CY}\u2013${CY+4}`);
   }
   return periods;
 }
@@ -1398,11 +1409,13 @@ function saveCard(){
     if(!bName)return;
     bIdx++;
     const baseKey=name.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'');
+    const isPerVisit=bPeriod==="per visit";
     benefits.push({
       id:`${baseKey}_b${bIdx}`,
       name:bName, desc:bDesc||bName,
       amount:bAmt, period:bPeriod,
-      periods:buildPeriods(bPeriod,bYears)
+      periods:buildPeriods(bPeriod,bYears),
+      ...(isPerVisit?{perUse:true,maxUses:null}:{})
     });
   });
 
