@@ -1509,6 +1509,7 @@ function saveCard(){
 
 // ── Notifications ─────────────────────────────────────────────────────────────
 const NK='ccbt_notif';
+const NCHECK='ccbt_notif_lastcheck';
 const LEAD={annual:30,semester:30,quarterly:15,monthly:5,'per stay':7,'4-year':30};
 let notifOn=localStorage.getItem(NK)==='1';
 
@@ -1544,89 +1545,88 @@ async function enableNotif(){
     notifOn=true;
     localStorage.setItem(NK,'1');
     localStorage.removeItem('ccbt_notif_later');
+    localStorage.removeItem(NCHECK);
     updateNotifBtn();
-    scheduleNotifs();
-    new Notification('CCBT reminders on 🔔',{body:"You'll be notified before credits expire."});
+    checkAndFireNotifs();
+    new Notification('CCBT reminders on \u{1F514}',{body:"Open the app daily and you'll be notified when credits are about to expire."});
   } else {
     alert('Permission denied. Enable notifications in Settings if you change your mind.');
   }
 }
 
 async function toggleNotif(){
-  if(notifOn){
-    notifOn=false;
-    localStorage.setItem(NK,'0');
-    updateNotifBtn();
-  } else {
-    await enableNotif();
-  }
+  if(notifOn){notifOn=false;localStorage.setItem(NK,'0');updateNotifBtn();}
+  else{await enableNotif();}
 }
 
 function periodEnd(label){
   const MO={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
-  // Monthly "Jan 26"
-  let m=label.match(/^(\w{3})\s+(\d{2})$/);
+  let m;
+  m=label.match(/^(\w{3})\s+(\d{2})$/);
   if(m&&MO[m[1]]!==undefined){const y=2000+parseInt(m[2]);return new Date(y,MO[m[1]]+1,0,23,59,59);}
-  // Quarterly "Q1 2026"
   m=label.match(/^Q(\d)\s+(\d{4})$/);
   if(m){const q=parseInt(m[1]);const y=parseInt(m[2]);return new Date(y,[2,5,8,11][q-1]+1,0,23,59,59);}
-  // Semester H1
   m=label.match(/Jan.+Jun\s+(\d{4})/);
   if(m)return new Date(parseInt(m[1]),6,0,23,59,59);
-  // Semester H2
   m=label.match(/Jul.+Dec\s+(\d{4})/);
   if(m)return new Date(parseInt(m[1]),12,0,23,59,59);
-  // Annual "2026"
   m=label.match(/^(\d{4})$/);
   if(m)return new Date(parseInt(m[1]),11,31,23,59,59);
-  // Stay "Stay 1 (2026)"
   m=label.match(/\((\d{4})\)/);
   if(m)return new Date(parseInt(m[1]),11,31,23,59,59);
-  // 4-year "2024–2028"
   m=label.match(/\d{4}.+(\d{4})/);
   if(m)return new Date(parseInt(m[1]),11,31,23,59,59);
   return null;
 }
 
-let _notifTimers=[];
-function scheduleNotifs(){
+function checkAndFireNotifs(){
   if(!notifOn)return;
   if(typeof Notification==='undefined'||Notification.permission!=='granted')return;
-  _notifTimers.forEach(t=>clearTimeout(t));
-  _notifTimers=[];
+  const today=new Date();today.setHours(0,0,0,0);
+  const todayMs=today.getTime();
+  const lastCheck=parseInt(localStorage.getItem(NCHECK)||'0');
+  if(todayMs<=lastCheck)return; // already checked today
+  localStorage.setItem(NCHECK,String(todayMs));
   const cards=allCards();
-  const now=Date.now();
+  const fired=[];
   cardKeys().forEach(k=>{
     const card=cards[k];
     card.benefits.forEach(b=>{
       if(b.perUse||b.customizable)return;
-      const lead=(LEAD[b.period]||15)*86400000;
+      const leadDays=LEAD[b.period]||15;
       b.periods.forEach(p=>{
-        if(used[uk(b.id,p)])return; // already claimed
+        if(used[uk(b.id,p)])return;
         const end=periodEnd(p);
         if(!end)return;
-        const fireAt=end.getTime()-lead;
-        const delay=fireAt-now;
-        if(delay<=0||delay>20*86400000)return; // only within 20 days (setTimeout limit safe zone)
-        const t=setTimeout(()=>{
-          if(notifOn&&Notification.permission==='granted'){
-            new Notification(card.name+' — '+b.name,{
-              body:p+' expires soon! $'+b.amount+' left to claim.',
-              icon:'/icon-192.png',
-              tag:'ccbt_'+b.id+'_'+p
-            });
-          }
-        },delay);
-        _notifTimers.push(t);
+        const endMs=end.getTime();
+        const fireMs=endMs-(leadDays*86400000);
+        const daysUntilEnd=Math.ceil((endMs-todayMs)/86400000);
+        // Fire if today is on or past the fire date and benefit hasn't expired
+        if(todayMs>=fireMs&&todayMs<endMs){
+          fired.push({
+            title:card.name+' \u2014 '+b.name,
+            body:p+': $'+b.amount+' expires in '+daysUntilEnd+' day'+(daysUntilEnd!==1?'s':'')+'. Claim it before it expires!',
+            tag:'ccbt_'+b.id+'_'+p.replace(/\s/g,'_')
+          });
+        }
       });
     });
   });
+  fired.forEach((n,i)=>{
+    setTimeout(()=>{
+      if(notifOn&&Notification.permission==='granted'){
+        new Notification(n.title,{body:n.body,tag:n.tag,icon:'/icon-192.png'});
+      }
+    },i*800);
+  });
 }
+
+function scheduleNotifs(){checkAndFireNotifs();}
 
 function initNotif(){
   updateNotifBtn();
   if(notifOn&&typeof Notification!=='undefined'&&Notification.permission==='granted'){
-    scheduleNotifs();
+    checkAndFireNotifs();
   } else {
     showNotifBar();
   }
