@@ -1607,7 +1607,7 @@ function scheduleNotifs(){
         if(!end)return;
         const fireAt=end.getTime()-lead;
         const delay=fireAt-now;
-        if(delay<=0||delay>90*86400000)return; // skip past or >90 days out
+        if(delay<=0||delay>20*86400000)return; // only within 20 days (setTimeout limit safe zone)
         const t=setTimeout(()=>{
           if(notifOn&&Notification.permission==='granted'){
             new Notification(card.name+' — '+b.name,{
