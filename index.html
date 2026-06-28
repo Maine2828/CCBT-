@@ -313,6 +313,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,san
   .tabs{gap:5px}
   .tab,.tab-add{padding:5px 10px;font-size:12px}
 }
+
+/* ── Notifications ── */
+.notif-btn{position:relative;width:36px;height:36px;border-radius:50%;border:0.5px solid var(--border-med);background:var(--surface);color:var(--text-2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;-webkit-tap-highlight-color:transparent;flex-shrink:0}
+.notif-btn:hover{color:var(--text)}
+.notif-btn.on{color:#1A6EBD;border-color:#1A6EBD;background:rgba(26,110,189,0.1)}
+.notif-dot{position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:50%;background:#E8940A;border:1.5px solid var(--surface);display:none}
+.notif-dot.show{display:block}
+.notif-bar{display:none;align-items:center;gap:10px;background:var(--surface);border:0.5px solid #1A6EBD;border-radius:var(--radius);padding:.75rem 1rem;margin-bottom:1.25rem}
+.notif-bar.show{display:flex}
+.notif-bar-text{flex:1;font-size:13px;color:var(--text-2);line-height:1.4}
+.notif-bar-text strong{color:var(--text)}
+.notif-allow{font-size:12px;font-weight:600;color:#fff;background:#1A6EBD;border:none;border-radius:var(--radius-sm);padding:5px 12px;cursor:pointer;font-family:inherit;flex-shrink:0}
+.notif-later{font-size:12px;color:var(--text-3);background:none;border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:5px 10px;cursor:pointer;font-family:inherit;flex-shrink:0}
 </style>
 </head>
 <body>
@@ -330,7 +343,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,san
       <h1>Credit Card Benefits Tracker</h1>
       <p id="cardSubtitle">Hilton Aspire · Chase Sapphire Reserve · Amex Platinum</p>
     </div>
-    <div class="year-switcher" id="yearSwitcher"></div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <button class="notif-btn" id="notifBtn" onclick="toggleNotif()" title="Notifications">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M8 1.5A4.5 4.5 0 0 0 3.5 6c0 2.5-.75 3.5-1.5 4.5h12c-.75-1-1.5-2-1.5-4.5A4.5 4.5 0 0 0 8 1.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+          <path d="M6.5 12a1.5 1.5 0 0 0 3 0" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+        </svg>
+        <span class="notif-dot" id="notifDot"></span>
+      </button>
+      <div class="year-switcher" id="yearSwitcher"></div>
+    </div>
   </div>
 
   <div class="summary" id="summary"></div>
@@ -863,7 +885,7 @@ function periodsForYear(b){
   if(b.period==="4-year") return b.periods;
   return b.periods.filter(p=>p.includes(ys)||p.endsWith(ys2));
 }
-function toggle(id,period){const k=uk(id,period);if(used[k])delete used[k];else used[k]=true;saveUsed();render()}
+function toggle(id,period){const k=uk(id,period);if(used[k])delete used[k];else used[k]=true;saveUsed();scheduleNotifs();render()}
 function setCustom(id,val){const n=parseInt(val.replace(/\D/g,""),10);if(!isNaN(n)&&n>0)customVals[id]=n;else delete customVals[id];saveCustom();render()}
 function resetAll(){if(!confirm("Reset all tracked benefits? This can't be undone."))return;used={};customVals={};hiddenCards=[];saveUsed();saveCustom();saveHidden();render()}
 
@@ -1053,6 +1075,7 @@ function render(){
   // subtitle
   document.getElementById('cardSubtitle').textContent=keys.map(k=>cards[k].short).join(' · ');
   document.getElementById('yearSwitcher').innerHTML=[CY,NY].map(y=>`<button class="year-btn ${activeYear===y?'active':''}" data-year="${y}" onclick="setYear(${y})">${y}</button>`).join('');
+  updateNotifBtn();
 
   // tabs
   const tabsHTML=["all",...keys].map(t=>{
@@ -1484,8 +1507,134 @@ function saveCard(){
   render();
 }
 
+// ── Notifications ─────────────────────────────────────────────────────────────
+const NK='ccbt_notif';
+const LEAD={annual:30,semester:30,quarterly:15,monthly:5,'per stay':7,'4-year':30};
+let notifOn=localStorage.getItem(NK)==='1';
+
+function updateNotifBtn(){
+  const btn=document.getElementById('notifBtn');
+  const dot=document.getElementById('notifDot');
+  if(!btn)return;
+  btn.classList.toggle('on',notifOn);
+  btn.title=notifOn?'Notifications on — tap to disable':'Enable benefit reminders';
+  if(dot)dot.classList.toggle('show',!notifOn&&typeof Notification!=='undefined'&&Notification.permission!=='denied');
+}
+
+function showNotifBar(){
+  if(notifOn)return;
+  if(typeof Notification==='undefined')return;
+  if(Notification.permission==='denied')return;
+  if(localStorage.getItem('ccbt_notif_later'))return;
+  const isInstalled=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+  if(!isInstalled)return;
+  setTimeout(()=>document.getElementById('notifBar')?.classList.add('show'),2500);
+}
+
+function laterNotif(){
+  document.getElementById('notifBar')?.classList.remove('show');
+  localStorage.setItem('ccbt_notif_later','1');
+}
+
+async function enableNotif(){
+  document.getElementById('notifBar')?.classList.remove('show');
+  if(typeof Notification==='undefined'){alert('Notifications not supported on this browser.');return;}
+  const p=await Notification.requestPermission();
+  if(p==='granted'){
+    notifOn=true;
+    localStorage.setItem(NK,'1');
+    localStorage.removeItem('ccbt_notif_later');
+    updateNotifBtn();
+    scheduleNotifs();
+    new Notification('CCBT reminders on 🔔',{body:"You'll be notified before credits expire."});
+  } else {
+    alert('Permission denied. Enable notifications in Settings if you change your mind.');
+  }
+}
+
+async function toggleNotif(){
+  if(notifOn){
+    notifOn=false;
+    localStorage.setItem(NK,'0');
+    updateNotifBtn();
+  } else {
+    await enableNotif();
+  }
+}
+
+function periodEnd(label){
+  const MO={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+  // Monthly "Jan 26"
+  let m=label.match(/^(\w{3})\s+(\d{2})$/);
+  if(m&&MO[m[1]]!==undefined){const y=2000+parseInt(m[2]);return new Date(y,MO[m[1]]+1,0,23,59,59);}
+  // Quarterly "Q1 2026"
+  m=label.match(/^Q(\d)\s+(\d{4})$/);
+  if(m){const q=parseInt(m[1]);const y=parseInt(m[2]);return new Date(y,[2,5,8,11][q-1]+1,0,23,59,59);}
+  // Semester H1
+  m=label.match(/Jan.+Jun\s+(\d{4})/);
+  if(m)return new Date(parseInt(m[1]),6,0,23,59,59);
+  // Semester H2
+  m=label.match(/Jul.+Dec\s+(\d{4})/);
+  if(m)return new Date(parseInt(m[1]),12,0,23,59,59);
+  // Annual "2026"
+  m=label.match(/^(\d{4})$/);
+  if(m)return new Date(parseInt(m[1]),11,31,23,59,59);
+  // Stay "Stay 1 (2026)"
+  m=label.match(/\((\d{4})\)/);
+  if(m)return new Date(parseInt(m[1]),11,31,23,59,59);
+  // 4-year "2024–2028"
+  m=label.match(/\d{4}.+(\d{4})/);
+  if(m)return new Date(parseInt(m[1]),11,31,23,59,59);
+  return null;
+}
+
+let _notifTimers=[];
+function scheduleNotifs(){
+  if(!notifOn)return;
+  if(typeof Notification==='undefined'||Notification.permission!=='granted')return;
+  _notifTimers.forEach(t=>clearTimeout(t));
+  _notifTimers=[];
+  const cards=allCards();
+  const now=Date.now();
+  cardKeys().forEach(k=>{
+    const card=cards[k];
+    card.benefits.forEach(b=>{
+      if(b.perUse||b.customizable)return;
+      const lead=(LEAD[b.period]||15)*86400000;
+      b.periods.forEach(p=>{
+        if(used[uk(b.id,p)])return; // already claimed
+        const end=periodEnd(p);
+        if(!end)return;
+        const fireAt=end.getTime()-lead;
+        const delay=fireAt-now;
+        if(delay<=0||delay>90*86400000)return; // skip past or >90 days out
+        const t=setTimeout(()=>{
+          if(notifOn&&Notification.permission==='granted'){
+            new Notification(card.name+' — '+b.name,{
+              body:p+' expires soon! $'+b.amount+' left to claim.',
+              icon:'/icon-192.png',
+              tag:'ccbt_'+b.id+'_'+p
+            });
+          }
+        },delay);
+        _notifTimers.push(t);
+      });
+    });
+  });
+}
+
+function initNotif(){
+  updateNotifBtn();
+  if(notifOn&&typeof Notification!=='undefined'&&Notification.permission==='granted'){
+    scheduleNotifs();
+  } else {
+    showNotifBar();
+  }
+}
+
 // ── Start the app ────────────────────────────────────────────────────────────
 render();
+initNotif();
 </script>
 </body>
 </html>
