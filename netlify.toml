@@ -15,3 +15,13 @@
     Access-Control-Allow-Origin = "*"
     Access-Control-Allow-Methods = "POST, OPTIONS"
     Access-Control-Allow-Headers = "Content-Type"
+
+[functions."push-notify"]
+  schedule = "0 9 * * *"
+  node_bundler = "esbuild"
+
+[functions."push-subscribe"]
+  node_bundler = "esbuild"
+
+[functions."ai-lookup"]
+  node_bundler = "esbuild"
