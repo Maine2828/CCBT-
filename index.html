@@ -46,6 +46,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,san
 .header-left h1{font-size:23px;font-weight:600;letter-spacing:-0.3px}
 .header-left p{font-size:14px;color:var(--text-2);margin-top:2px}
 .year-pill{font-size:13px;font-weight:500;color:var(--text-2);background:var(--surface);border:0.5px solid var(--border-med);border-radius:20px;padding:5px 12px}
+/* notification bell */
+.notif-btn{position:relative;width:36px;height:36px;border-radius:50%;border:0.5px solid var(--border-med);background:var(--surface);color:var(--text-2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;-webkit-tap-highlight-color:transparent;flex-shrink:0}
+.notif-btn:hover{color:var(--text);border-color:var(--border-med)}
+.notif-btn.active{color:#1A6EBD;border-color:#1A6EBD;background:rgba(26,110,189,0.08)}
+.notif-dot{position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:#E8940A;border:1.5px solid var(--surface);display:none}
+.notif-dot.visible{display:block}
+/* notification permission banner */
+.notif-banner{display:none;align-items:center;gap:10px;background:var(--surface);border:0.5px solid #1A6EBD;border-radius:var(--radius);padding:.75rem 1rem;margin-bottom:1.25rem}
+.notif-banner.visible{display:flex}
+.notif-banner-icon{font-size:20px;flex-shrink:0}
+.notif-banner-text{flex:1;font-size:13px;color:var(--text-2);line-height:1.4}
+.notif-banner-text strong{color:var(--text)}
+.notif-banner-actions{display:flex;gap:6px;flex-shrink:0}
+.notif-allow{font-size:12px;font-weight:600;color:#fff;background:#1A6EBD;border:none;border-radius:var(--radius-sm);padding:5px 12px;cursor:pointer;font-family:inherit}
+.notif-dismiss{font-size:12px;color:var(--text-3);background:none;border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:5px 10px;cursor:pointer;font-family:inherit}
 .year-switcher{display:flex;gap:3px;background:var(--surface2);border-radius:20px;padding:3px;border:0.5px solid var(--border);flex-shrink:0}
 .year-btn{padding:5px 13px;border-radius:16px;border:none;font-size:13px;font-weight:500;cursor:pointer;background:transparent;color:var(--text-3);transition:all .2s;font-family:inherit;-webkit-tap-highlight-color:transparent;white-space:nowrap}
 .year-btn.active{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,0.1)}
@@ -314,6 +329,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,san
 }
 </style>
 </head>
+<script>
+// Register service worker for notifications
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('/sw.js').catch(()=>{});
+}
+</script>
 <body>
 <div class="shell">
 
@@ -323,12 +344,31 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,san
     <button class="install-banner-close" onclick="dismissBanner()">×</button>
   </div>
 
+  <!-- Notification permission banner -->
+  <div class="notif-banner" id="notifBanner">
+    <span class="notif-banner-icon">🔔</span>
+    <span class="notif-banner-text"><strong>Benefit reminders</strong> — get notified before credits expire so you never miss a redemption.</span>
+    <div class="notif-banner-actions">
+      <button class="notif-allow" onclick="requestNotifPermission()">Enable</button>
+      <button class="notif-dismiss" onclick="dismissNotifBanner()">Not now</button>
+    </div>
+  </div>
+
   <div class="header">
     <div class="header-left">
       <h1>Credit Card Benefits Tracker</h1>
       <p id="cardSubtitle">Hilton Aspire · Chase Sapphire Reserve · Amex Platinum</p>
     </div>
-    <div class="year-switcher" id="yearSwitcher"></div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <button class="notif-btn" id="notifBtn" onclick="toggleNotifications()" title="Notifications">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <path d="M9 1.5a5.25 5.25 0 0 0-5.25 5.25c0 2.625-.75 3.75-1.5 4.5h13.5c-.75-.75-1.5-1.875-1.5-4.5A5.25 5.25 0 0 0 9 1.5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+          <path d="M7.5 13.5a1.5 1.5 0 0 0 3 0" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+        <span class="notif-dot" id="notifDot"></span>
+      </button>
+      <div class="year-switcher" id="yearSwitcher"></div>
+    </div>
   </div>
 
   <div class="summary" id="summary"></div>
@@ -438,6 +478,193 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,san
   else if(isMac&&isSafari){txt.innerHTML='<strong>Add to Dock:</strong> in Safari go to File → "Add to Dock…"';banner.classList.add('visible')}
 })();
 function dismissBanner(){document.getElementById('installBanner').classList.remove('visible');sessionStorage.setItem('install_dismissed','1')}
+
+// ── Notifications ─────────────────────────────────────────────────────────────
+const NOTIF_KEY='ccbt_notif_enabled';
+let notifsEnabled=localStorage.getItem(NOTIF_KEY)==='1';
+
+// Lead times in days before period end
+const NOTIF_LEAD={
+  annual:30, semester:30, quarterly:15,
+  monthly:5, 'per stay':7, '4-year':30
+};
+
+function updateNotifBtn(){
+  const btn=document.getElementById('notifBtn');
+  const dot=document.getElementById('notifDot');
+  if(!btn) return;
+  btn.classList.toggle('active', notifsEnabled);
+  btn.title=notifsEnabled?'Notifications on — tap to disable':'Enable benefit reminders';
+  if(dot) dot.classList.toggle('visible', !notifsEnabled && Notification.permission!=='denied');
+}
+
+function showNotifBanner(){
+  if(notifsEnabled) return;
+  if(Notification.permission==='denied') return;
+  if(localStorage.getItem('ccbt_notif_dismissed')) return;
+  const isStandalone=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+  if(!isStandalone) return; // only prompt when installed
+  setTimeout(()=>{
+    document.getElementById('notifBanner')?.classList.add('visible');
+  }, 2000);
+}
+
+function dismissNotifBanner(){
+  document.getElementById('notifBanner')?.classList.remove('visible');
+  localStorage.setItem('ccbt_notif_dismissed','1');
+}
+
+async function requestNotifPermission(){
+  document.getElementById('notifBanner')?.classList.remove('visible');
+  if(!('Notification' in window)){
+    alert('Notifications are not supported on this device/browser.');
+    return;
+  }
+  const perm=await Notification.requestPermission();
+  if(perm==='granted'){
+    notifsEnabled=true;
+    localStorage.setItem(NOTIF_KEY,'1');
+    updateNotifBtn();
+    scheduleAllNotifications();
+    // Show a test notification
+    new Notification('CCBT Reminders enabled 🔔',{
+      body:'You\'ll be notified before your credits expire.',
+      icon:'/icon-192.png'
+    });
+  } else {
+    alert('Permission denied. You can enable notifications later from your device settings.');
+  }
+}
+
+async function toggleNotifications(){
+  if(notifsEnabled){
+    // Turn off
+    notifsEnabled=false;
+    localStorage.setItem(NOTIF_KEY,'0');
+    updateNotifBtn();
+  } else {
+    if(Notification.permission==='granted'){
+      notifsEnabled=true;
+      localStorage.setItem(NOTIF_KEY,'1');
+      updateNotifBtn();
+      scheduleAllNotifications();
+    } else {
+      await requestNotifPermission();
+    }
+  }
+}
+
+function getPeriodEndDate(periodLabel){
+  // Returns the last day of the period as a Date
+  const now=new Date();
+  const CY=now.getFullYear();
+
+  // Monthly: "Jan 26" → last day of that month
+  const monthMatch=periodLabel.match(/^(\w{3})\s+(\d{2})$/);
+  if(monthMatch){
+    const months={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+    const m=months[monthMatch[1]];
+    const y=2000+parseInt(monthMatch[2]);
+    if(m===undefined) return null;
+    return new Date(y,m+1,0,23,59,59); // last day of month
+  }
+
+  // Quarterly: "Q1 2026" etc
+  const qMatch=periodLabel.match(/^Q(\d)\s+(\d{4})$/);
+  if(qMatch){
+    const q=parseInt(qMatch[1]);
+    const y=parseInt(qMatch[2]);
+    const endMonth=[2,5,8,11][q-1];
+    return new Date(y,endMonth+1,0,23,59,59);
+  }
+
+  // Semester: "Jan–Jun 2026" or "Jul–Dec 2026"
+  const semH1=periodLabel.match(/Jan.+Jun\s+(\d{4})/);
+  if(semH1) return new Date(parseInt(semH1[1]),5,30,23,59,59);
+  const semH2=periodLabel.match(/Jul.+Dec\s+(\d{4})/);
+  if(semH2) return new Date(parseInt(semH2[1]),11,31,23,59,59);
+
+  // Annual: "2026"
+  const yearMatch=periodLabel.match(/^(\d{4})$/);
+  if(yearMatch) return new Date(parseInt(yearMatch[1]),11,31,23,59,59);
+
+  // Per stay: "Stay 1 (2026)"
+  const stayMatch=periodLabel.match(/Stay\s+\d+\s+\((\d{4})\)/);
+  if(stayMatch) return new Date(parseInt(stayMatch[1]),11,31,23,59,59);
+
+  // 4-year: "2024–2028"
+  const fourYearMatch=periodLabel.match(/\d{4}.(\d{4})/);
+  if(fourYearMatch) return new Date(parseInt(fourYearMatch[1]),11,31,23,59,59);
+
+  return null;
+}
+
+function scheduleAllNotifications(){
+  if(!notifsEnabled) return;
+  if(!('serviceWorker' in navigator)) return;
+  if(Notification.permission!=='granted') return;
+
+  const cards=allCards();
+  const keys=cardKeys();
+  const now=Date.now();
+  const notifications=[];
+
+  keys.forEach(cardKey=>{
+    const card=cards[cardKey];
+    card.benefits.forEach(b=>{
+      if(b.perUse||b.customizable) return; // skip per-use and custom
+      const leadDays=NOTIF_LEAD[b.period]||15;
+      const leadMs=leadDays*24*60*60*1000;
+
+      b.periods.forEach(period=>{
+        // skip already claimed
+        if(used[`${b.id}::${period}`]) return;
+
+        const endDate=getPeriodEndDate(period);
+        if(!endDate) return;
+
+        const fireAt=endDate.getTime()-leadMs;
+        if(fireAt<=now) return; // already past
+
+        notifications.push({
+          tag:`ccbt_${b.id}_${period}`,
+          title:`${card.name} — ${b.name}`,
+          body:`${period} credit expires soon! $${b.amount} remaining to claim.`,
+          fireAt
+        });
+      });
+    });
+  });
+
+  // Send to service worker
+  navigator.serviceWorker.ready.then(reg=>{
+    reg.active?.postMessage({type:'SCHEDULE_NOTIFICATIONS',notifications});
+  });
+
+  // Also schedule via setTimeout for near-term (within 24h) as backup
+  notifications
+    .filter(n=>n.fireAt-now<24*60*60*1000)
+    .forEach(n=>{
+      const delay=n.fireAt-now;
+      if(delay>0){
+        setTimeout(()=>{
+          if(Notification.permission==='granted'&&notifsEnabled){
+            new Notification(n.title,{body:n.body,icon:'/icon-192.png',tag:n.tag});
+          }
+        },delay);
+      }
+    });
+}
+
+// Reschedule whenever app opens or tracking changes
+function initNotifications(){
+  updateNotifBtn();
+  if(Notification.permission==='granted'&&notifsEnabled){
+    scheduleAllNotifications();
+  } else {
+    showNotifBanner();
+  }
+}
 
 // ── Dynamic year helpers ────────────────────────────────────────────────────
 const CY = new Date().getFullYear();
@@ -861,7 +1088,7 @@ function periodsForYear(b){
   if(b.period==="4-year") return b.periods;
   return b.periods.filter(p=>p.includes(ys)||p.endsWith(ys2));
 }
-function toggle(id,period){const k=uk(id,period);if(used[k])delete used[k];else used[k]=true;saveUsed();render()}
+function toggle(id,period){const k=uk(id,period);if(used[k])delete used[k];else used[k]=true;saveUsed();scheduleAllNotifications();render()}
 function setCustom(id,val){const n=parseInt(val.replace(/\D/g,""),10);if(!isNaN(n)&&n>0)customVals[id]=n;else delete customVals[id];saveCustom();render()}
 function resetAll(){if(!confirm("Reset all tracked benefits? This can't be undone."))return;used={};customVals={};hiddenCards=[];saveUsed();saveCustom();saveHidden();render()}
 
@@ -1051,6 +1278,7 @@ function render(){
   // subtitle
   document.getElementById('cardSubtitle').textContent=keys.map(k=>cards[k].short).join(' · ');
   document.getElementById('yearSwitcher').innerHTML=[CY,NY].map(y=>`<button class="year-btn ${activeYear===y?'active':''}" data-year="${y}" onclick="setYear(${y})">${y}</button>`).join('');
+  updateNotifBtn();
 
   // tabs
   const tabsHTML=["all",...keys].map(t=>{
@@ -1484,6 +1712,7 @@ function saveCard(){
 
 // ── Start the app ────────────────────────────────────────────────────────────
 render();
+initNotifications();
 </script>
 </body>
 </html>
