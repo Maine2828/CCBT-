@@ -355,6 +355,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,san
     </div>
   </div>
 
+  <!-- Notification permission banner -->
+  <div class="notif-bar" id="notifBar">
+    <span style="font-size:20px;flex-shrink:0">🔔</span>
+    <span class="notif-bar-text"><strong>Benefit reminders</strong> — get notified before credits expire, even when the app is closed.</span>
+    <button class="notif-allow" onclick="enableNotif()">Enable</button>
+    <button class="notif-later" onclick="laterNotif()">Later</button>
+  </div>
+
+  <!-- Notification status bar (shown when enabled) -->
+  <div class="notif-bar" id="notifStatusBar" style="border-color:var(--green)">
+    <span style="font-size:20px;flex-shrink:0">✓</span>
+    <span class="notif-bar-text" id="notifStatusText"><strong>Reminders active</strong> — Netlify checks daily at 9am UTC and sends push notifications.</span>
+    <button class="notif-allow" style="background:var(--green)" onclick="testNotif()">Test</button>
+    <button class="notif-later" onclick="document.getElementById('notifStatusBar').style.display='none'">Hide</button>
+  </div>
+
   <div class="summary" id="summary"></div>
   <div class="tabs" id="tabs"></div>
   <div id="benefits"></div>
@@ -1507,10 +1523,10 @@ function saveCard(){
   render();
 }
 
-// ── Push Notifications ────────────────────────────────────────────────────────
+// ── Notifications (daily in-app check) ───────────────────────────────────────
 const NK='ccbt_notif';
-const PUSH_BIN_KEY='ccbt_push_bin';
-const VAPID_PUBLIC='BMbO_oNb5-3TapKOw8O4iJ9B19Y15BRxmx4Hl-XfKGsYMB2mGQJ6OG6p3zioOjYt36JsUyeX05O2iRSRkBk_fUE';
+const NCHECK='ccbt_notif_lastcheck';
+const LEAD={annual:30,semester:30,quarterly:15,monthly:5,'per stay':7,'4-year':30};
 let notifOn=localStorage.getItem(NK)==='1';
 
 function updateNotifBtn(){
@@ -1537,67 +1553,24 @@ function laterNotif(){
   localStorage.setItem('ccbt_notif_later','1');
 }
 
-function urlBase64ToUint8Array(base64String){
-  const padding='='.repeat((4-base64String.length%4)%4);
-  const base64=(base64String+padding).replace(/-/g,'+').replace(/_/g,'/');
-  const raw=atob(base64);
-  return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)));
-}
-
 async function enableNotif(){
   document.getElementById('notifBar')?.classList.remove('show');
-  if(!('serviceWorker' in navigator)||!('PushManager' in window)){
-    alert('Push notifications are not supported on this browser. Make sure you added the app to your Home Screen.');
-    return;
-  }
-  try{
-    const perm=await Notification.requestPermission();
-    if(perm!=='granted'){alert('Permission denied. Enable in Settings to get reminders.');return;}
-
-    // Register service worker
-    const reg=await navigator.serviceWorker.register('/sw.js');
-    await navigator.serviceWorker.ready;
-
-    // Subscribe to push
-    const sub=await reg.pushManager.subscribe({
-      userVisibleOnly:true,
-      applicationServerKey:urlBase64ToUint8Array(VAPID_PUBLIC)
-    });
-
-    // Save subscription + card data snapshot to Netlify
-    await saveSubscription(sub);
-
+  if(!('Notification' in window)){alert('Notifications are not supported on this browser.');return;}
+  const p=await Notification.requestPermission();
+  if(p==='granted'){
     notifOn=true;
     localStorage.setItem(NK,'1');
     localStorage.removeItem('ccbt_notif_later');
+    localStorage.removeItem(NCHECK);
     updateNotifBtn();
-    new Notification('CCBT reminders on 🔔',{body:'You will be notified daily when benefits are about to expire — no need to open the app!'});
-  }catch(err){
-    console.error('Push subscription failed:',err);
-    alert('Could not enable notifications: '+err.message);
-  }
-}
-
-async function saveSubscription(sub){
-  // Build card data snapshot so server knows what to check
-  const cards=allCards();
-  const snapshot={};
-  cardKeys().forEach(k=>{
-    const c=cards[k];
-    snapshot[k]={name:c.name,benefits:c.benefits.filter(b=>!b.perUse&&!b.customizable)};
-  });
-
-  const binId=localStorage.getItem(PUSH_BIN_KEY)||null;
-  const body={subscription:{endpoint:sub.toJSON?sub.toJSON():sub,cards:snapshot,used},binId,subscriptions:[{...(sub.toJSON?sub.toJSON():sub),cards:snapshot,used}]};
-
-  try{
-    const res=await fetch('/.netlify/functions/push-subscribe',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(body)
+    document.getElementById('notifStatusBar')?.style.setProperty('display','flex');
+    checkAndFireNotifs();
+    new Notification('CCBT reminders on \u{1F514}',{
+      body:'Open the app each day and you will be notified when benefits are about to expire.'
     });
-    const data=await res.json();
-    if(data.binId)localStorage.setItem(PUSH_BIN_KEY,data.binId);
-  }catch(err){console.error('Failed to save subscription:',err);}
+  }else{
+    alert('Permission denied. Enable notifications in your device Settings to get reminders.');
+  }
 }
 
 async function toggleNotif(){
@@ -1605,22 +1578,97 @@ async function toggleNotif(){
     notifOn=false;
     localStorage.setItem(NK,'0');
     updateNotifBtn();
+    document.getElementById('notifStatusBar')?.style.setProperty('display','none');
   }else{
     await enableNotif();
   }
 }
 
-function scheduleNotifs(){
-  // Re-save subscription snapshot when tracking changes so server has fresh data
+function periodEnd(label){
+  const MO={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+  let m;
+  m=label.match(/^(\w{3})\s+(\d{2})$/);
+  if(m&&MO[m[1]]!==undefined){const y=2000+parseInt(m[2]);return new Date(y,MO[m[1]]+1,0,23,59,59);}
+  m=label.match(/^Q(\d)\s+(\d{4})$/);
+  if(m){const q=parseInt(m[1]);const y=parseInt(m[2]);return new Date(y,[2,5,8,11][q-1]+1,0,23,59,59);}
+  m=label.match(/Jan.+Jun\s+(\d{4})/);
+  if(m)return new Date(parseInt(m[1]),6,0,23,59,59);
+  m=label.match(/Jul.+Dec\s+(\d{4})/);
+  if(m)return new Date(parseInt(m[1]),12,0,23,59,59);
+  m=label.match(/^(\d{4})$/);
+  if(m)return new Date(parseInt(m[1]),11,31,23,59,59);
+  m=label.match(/\((\d{4})\)/);
+  if(m)return new Date(parseInt(m[1]),11,31,23,59,59);
+  m=label.match(/\d{4}.+(\d{4})/);
+  if(m)return new Date(parseInt(m[1]),11,31,23,59,59);
+  return null;
+}
+
+function checkAndFireNotifs(){
   if(!notifOn)return;
-  navigator.serviceWorker?.ready.then(reg=>{
-    reg.pushManager?.getSubscription().then(sub=>{if(sub)saveSubscription(sub);});
+  if(!('Notification' in window)||Notification.permission!=='granted')return;
+  const today=new Date();today.setHours(0,0,0,0);
+  const todayMs=today.getTime();
+  const lastCheck=parseInt(localStorage.getItem(NCHECK)||'0');
+  if(todayMs<=lastCheck)return; // already checked today
+  localStorage.setItem(NCHECK,String(todayMs));
+  const cards=allCards();
+  const fired=[];
+  cardKeys().forEach(k=>{
+    const card=cards[k];
+    card.benefits.forEach(b=>{
+      if(b.perUse||b.customizable)return;
+      const leadDays=LEAD[b.period]||15;
+      b.periods.forEach(p=>{
+        if(used[uk(b.id,p)])return;
+        const end=periodEnd(p);
+        if(!end)return;
+        const endMs=end.getTime();
+        const fireMs=endMs-(leadDays*86400000);
+        const daysLeft=Math.ceil((endMs-todayMs)/86400000);
+        if(todayMs>=fireMs&&todayMs<endMs){
+          fired.push({
+            title:card.name+' \u2014 '+b.name,
+            body:p+': $'+b.amount+' expires in '+daysLeft+' day'+(daysLeft!==1?'s':'')+'. Open CCBT to claim it!',
+            tag:'ccbt_'+b.id+'_'+p.replace(/\s/g,'_')
+          });
+        }
+      });
+    });
+  });
+  fired.forEach((n,i)=>{
+    setTimeout(()=>{
+      if(notifOn&&Notification.permission==='granted'){
+        new Notification(n.title,{body:n.body,tag:n.tag,icon:'/icon-192.png'});
+      }
+    },i*800);
   });
 }
 
+function testNotif(){
+  if(!('Notification' in window)||Notification.permission!=='granted'){
+    alert('Please enable notifications first.');return;
+  }
+  // Force a check by clearing last check date
+  localStorage.removeItem(NCHECK);
+  checkAndFireNotifs();
+  // If nothing fired, send a test notification
+  setTimeout(()=>{
+    new Notification('CCBT Test \u2713',{
+      body:'Notifications are working! You will be reminded when benefits are about to expire.',
+      tag:'ccbt_test'
+    });
+  },500);
+}
+
+function scheduleNotifs(){checkAndFireNotifs();}
+
 function initNotif(){
   updateNotifBtn();
-  showNotifBar();
+  const statusBar=document.getElementById('notifStatusBar');
+  if(statusBar)statusBar.style.display=notifOn?'flex':'none';
+  if(!notifOn){showNotifBar();}
+  else{checkAndFireNotifs();}
 }
 
 // ── Start the app ────────────────────────────────────────────────────────────
