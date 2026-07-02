@@ -875,6 +875,12 @@ function saveHidden(){try{localStorage.setItem(HK,JSON.stringify(hiddenCards))}c
 function allCards(){
   const merged={...BUILTIN_CARDS,...extraCards};
   hiddenCards.forEach(k=>delete merged[k]);
+  // re-register earning rates + perks for any extra/edited cards
+  Object.keys(extraCards).forEach(k=>{
+    const c=extraCards[k];
+    if(c.earningRates) EARNING_RATES[k]=c.earningRates;
+    if(c.perks)        CARD_PERKS[k]={sections:c.perks};
+  });
   return merged;
 }
 function cardKeys(){return Object.keys(allCards())}
@@ -1400,7 +1406,7 @@ function editCard(key){
     fee: card.fee,
     color: card.color,
     earningRates: card.earningRates||EARNING_RATES[key]||null,
-    perks: card.perks||(CARD_PERKS[key]?.sections)||null,
+    perks: card.perks||CARD_PERKS[key]?.sections||null,
     benefits: card.benefits.map(b=>{
       let years='both';
       if(b.periods && b.periods.length){
@@ -1484,20 +1490,26 @@ function saveCard(){
     if(pendingAI?.perks)        updated.perks=pendingAI.perks;
 
     if(BUILTIN_CARDS[editingCardKey]){
-      // built-in card — store override in extraCards using SAME key pattern
-      // so tracking data keys (h1, h2 etc) are preserved in the benefits array
+      // built-in card — store override in extraCards, hide original
       if(!hiddenCards.includes(editingCardKey)) hiddenCards.push(editingCardKey);
       saveHidden();
       const newKey=editingCardKey+'_edited';
       updated.builtin=false;
+      // preserve earning rates + perks from original if not overridden by AI
+      if(!updated.earningRates) updated.earningRates=EARNING_RATES[editingCardKey]||null;
+      if(!updated.perks)        updated.perks=CARD_PERKS[editingCardKey]?.sections||null;
       extraCards[newKey]=updated;
       if(updated.earningRates) EARNING_RATES[newKey]=updated.earningRates;
       if(updated.perks)        CARD_PERKS[newKey]={sections:updated.perks};
-      // ── Migrate tracking data from old benefit IDs to new key ──
-      // (benefit IDs are preserved so used/customVals/perUseData keys are unchanged)
+      // also keep original key populated so renderPerksPanel fallback works
+      if(updated.earningRates) EARNING_RATES[editingCardKey]=updated.earningRates;
+      if(updated.perks)        CARD_PERKS[editingCardKey]={sections:updated.perks};
       saveExtra();
       activeTab=newKey;
     } else {
+      // preserve earning rates + perks from existing card if not overridden by AI
+      if(!updated.earningRates) updated.earningRates=EARNING_RATES[editingCardKey]||extraCards[editingCardKey]?.earningRates||null;
+      if(!updated.perks)        updated.perks=CARD_PERKS[editingCardKey]?.sections||extraCards[editingCardKey]?.perks||null;
       extraCards[editingCardKey]=updated;
       if(updated.earningRates) EARNING_RATES[editingCardKey]=updated.earningRates;
       if(updated.perks)        CARD_PERKS[editingCardKey]={sections:updated.perks};
