@@ -377,9 +377,34 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,san
 
   <div class="footer">
     <p class="footer-note">Mark each credit period as used when you redeem it. The free night reward value is estimated — update it with your actual hotel rate.</p>
-    <div style="display:flex;align-items:center;gap:10px">
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
       <div class="footer-fees" id="footer-fees"></div>
+      <button class="reset-btn" id="apiKeyBtn" onclick="openApiKeyModal()">⚙ API Key</button>
       <button class="reset-btn" onclick="resetAll()">Reset all</button>
+    </div>
+  </div>
+</div>
+
+<!-- API Key Modal -->
+<div class="modal-backdrop" id="apiKeyBackdrop" onclick="if(event.target===this)closeApiKeyModal()" style="display:none">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-header">
+      <span class="modal-title">API Key Settings</span>
+      <button class="modal-close" onclick="closeApiKeyModal()">×</button>
+    </div>
+    <div style="font-size:13px;color:var(--text-2);line-height:1.6;margin-bottom:1rem">
+      The AI card lookup uses an Anthropic API key. You can use your own key so lookups are charged to your account instead of the app owner's.
+    </div>
+    <div class="field">
+      <label style="font-size:12px;color:var(--text-2);display:block;margin-bottom:5px">Your Anthropic API key <span style="color:var(--text-3);font-weight:400">(optional)</span></label>
+      <input type="password" id="apiKeyInput" placeholder="sk-ant-..." autocomplete="off"
+        style="width:100%;padding:9px 11px;border:0.5px solid var(--border-med);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-size:13px;font-family:inherit;outline:none"/>
+      <div style="font-size:11px;color:var(--text-3);margin-top:5px">Stored only in your browser — never shared with anyone. Get a key at <span style="color:#1A6EBD">console.anthropic.com</span></div>
+    </div>
+    <div id="apiKeyStatus" style="font-size:12px;margin-top:8px;min-height:16px"></div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="clearApiKey()">Clear key</button>
+      <button class="btn-primary" onclick="saveApiKey()">Save key</button>
     </div>
   </div>
 </div>
@@ -1098,6 +1123,7 @@ function render(){
   document.getElementById('cardSubtitle').textContent=keys.map(k=>cards[k].short).join(' · ');
   document.getElementById('yearSwitcher').innerHTML=[CY,NY].map(y=>`<button class="year-btn ${activeYear===y?'active':''}" data-year="${y}" onclick="setYear(${y})">${y}</button>`).join('');
   updateNotifBtn();
+  updateApiKeyBtn();
 
   // tabs
   const tabsHTML=["all",...keys].map(t=>{
@@ -1249,7 +1275,7 @@ CRITICAL PERIOD RULES — follow exactly:
     ?`You are a credit card benefits expert. Extract ALL benefits, earning rates, perks, annual fee from this card page. ${schema}`
     :`You are a credit card benefits expert. User searched "${name}". Return up to 3 matching cards, most likely first. ${schema}`;
   try{
-    const res=await fetch('/.netlify/functions/ai-lookup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cardName:name||url,url:isUrl?url:null,prompt})});
+    const res=await fetch('/.netlify/functions/ai-lookup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cardName:name||url,url:isUrl?url:null,prompt,userApiKey:getUserApiKey()||undefined})});
     const data=await res.json();
     if(data.error)throw new Error(data.error);
     const text=data.content?.filter(c=>c.type==='text').map(c=>c.text).join('');
@@ -1681,6 +1707,61 @@ function initNotif(){
   if(statusBar)statusBar.style.display=notifOn?'flex':'none';
   if(!notifOn){showNotifBar();}
   else{checkAndFireNotifs();}
+}
+
+// ── API Key management ────────────────────────────────────────────────────────
+const AK_KEY='ccbt_api_key';
+
+function getUserApiKey(){ return localStorage.getItem(AK_KEY)||''; }
+
+function openApiKeyModal(){
+  const existing=getUserApiKey();
+  const input=document.getElementById('apiKeyInput');
+  if(input) input.value=existing?'••••••••••••••••••':'';
+  input?.setAttribute('placeholder', existing?'Key saved — paste new key to replace':'sk-ant-...');
+  document.getElementById('apiKeyStatus').textContent='';
+  document.getElementById('apiKeyBackdrop').style.display='flex';
+  // update button indicator
+  updateApiKeyBtn();
+}
+
+function closeApiKeyModal(){
+  document.getElementById('apiKeyBackdrop').style.display='none';
+}
+
+function updateApiKeyBtn(){
+  const btn=document.getElementById('apiKeyBtn');
+  if(!btn)return;
+  const hasKey=!!getUserApiKey();
+  btn.textContent=hasKey?'⚙ API Key ✓':'⚙ API Key';
+  btn.style.color=hasKey?'var(--green)':'var(--text-2)';
+}
+
+function saveApiKey(){
+  const val=document.getElementById('apiKeyInput').value.trim();
+  if(!val||val.startsWith('•')){
+    // no change
+    document.getElementById('apiKeyStatus').innerHTML='<span style="color:var(--text-3)">No changes made.</span>';
+    return;
+  }
+  if(!val.startsWith('sk-ant-')){
+    document.getElementById('apiKeyStatus').innerHTML='<span style="color:#c0392b">Invalid key — Anthropic keys start with sk-ant-</span>';
+    return;
+  }
+  localStorage.setItem(AK_KEY, val);
+  updateApiKeyBtn();
+  document.getElementById('apiKeyStatus').innerHTML='<span style="color:var(--green)">✓ Key saved successfully</span>';
+  document.getElementById('apiKeyInput').value='';
+  document.getElementById('apiKeyInput').placeholder='Key saved — paste new key to replace';
+  setTimeout(closeApiKeyModal, 1200);
+}
+
+function clearApiKey(){
+  localStorage.removeItem(AK_KEY);
+  document.getElementById('apiKeyInput').value='';
+  document.getElementById('apiKeyInput').placeholder='sk-ant-...';
+  document.getElementById('apiKeyStatus').innerHTML='<span style="color:var(--text-2)">Key cleared — using app default key</span>';
+  updateApiKeyBtn();
 }
 
 // ── Start the app ────────────────────────────────────────────────────────────
