@@ -3,21 +3,22 @@ exports.handler = async (event) => {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: 'API key not configured' })
-    };
-  }
-
   let body;
   try { body = JSON.parse(event.body); }
   catch { return { statusCode: 400, body: JSON.stringify({ error: 'Invalid JSON' }) }; }
 
-  const { cardName, url, prompt } = body;
+  const { cardName, url, prompt, userApiKey } = body;
   if (!cardName && !url) {
     return { statusCode: 400, body: JSON.stringify({ error: 'Missing cardName or url' }) };
+  }
+
+  // Use user's own key — no fallback to server key
+  const apiKey = (userApiKey && userApiKey.startsWith('sk-ant-')) ? userApiKey : null;
+  if (!apiKey) {
+    return {
+      statusCode: 403,
+      body: JSON.stringify({ error: 'No API key provided. Please add your own Anthropic API key via the ⚙ API Key button in the app footer.' })
+    };
   }
 
   let pageContent = '';
