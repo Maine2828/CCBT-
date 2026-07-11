@@ -7,17 +7,42 @@ exports.handler = async (event) => {
   try { body = JSON.parse(event.body); }
   catch { return { statusCode: 400, body: JSON.stringify({ error: 'Invalid JSON' }) }; }
 
-  const { cardName, url, prompt, userApiKey } = body;
+  const { cardName, url, prompt, userApiKey, passcode } = body;
   if (!cardName && !url) {
     return { statusCode: 400, body: JSON.stringify({ error: 'Missing cardName or url' }) };
   }
 
-  // Use user's own key — no fallback to server key
-  const apiKey = (userApiKey && userApiKey.startsWith('sk-ant-')) ? userApiKey : null;
-  if (!apiKey) {
+  // Determine which API key to use:
+  // 1. User's own key (if provided and valid)
+  // 2. Server key (if correct passcode provided)
+  // 3. Otherwise — reject
+  let apiKey = null;
+
+  if (userApiKey && userApiKey.startsWith('sk-ant-')) {
+    // User provided their own valid key
+    apiKey = userApiKey;
+  } else if (passcode && process.env.LOOKUP_PASSCODE &&
+             passcode === process.env.LOOKUP_PASSCODE) {
+    // Correct passcode — use server key
+    apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) {
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: 'Server API key not configured. Contact the app owner.' })
+      };
+    }
+  } else if (passcode && process.env.LOOKUP_PASSCODE &&
+             passcode !== process.env.LOOKUP_PASSCODE) {
+    // Wrong passcode
+    return {
+      statusCode: 401,
+      body: JSON.stringify({ error: 'Incorrect passcode. Please try again or use your own API key.' })
+    };
+  } else {
+    // No key and no passcode
     return {
       statusCode: 403,
-      body: JSON.stringify({ error: 'No API key provided. Please add your own Anthropic API key via the ⚙ API Key button in the app footer.' })
+      body: JSON.stringify({ error: 'no_key' })
     };
   }
 
@@ -32,26 +57,19 @@ exports.handler = async (event) => {
           'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
           'Accept-Language': 'en-US,en;q=0.5',
         },
-        signal: AbortSignal.timeout(10000) // 10 second timeout
+        signal: AbortSignal.timeout(10000)
       });
 
       if (!pageRes.ok) throw new Error(`Page returned ${pageRes.status}`);
 
       const html = await pageRes.text();
-
-      // Strip HTML tags and extract readable text
       pageContent = html
         .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, ' ')
         .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, ' ')
         .replace(/<[^>]+>/g, ' ')
-        .replace(/&amp;/g, '&')
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>')
-        .replace(/&nbsp;/g, ' ')
-        .replace(/&#[0-9]+;/g, ' ')
-        .replace(/\s{3,}/g, '  ')
-        .trim()
-        .slice(0, 12000); // cap at ~12k chars to stay within token limits
+        .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+        .replace(/&nbsp;/g, ' ').replace(/&#[0-9]+;/g, ' ')
+        .replace(/\s{3,}/g, '  ').trim().slice(0, 12000);
 
     } catch (err) {
       return {
@@ -61,7 +79,6 @@ exports.handler = async (event) => {
     }
   }
 
-  // Build final prompt — inject page content if URL was fetched
   const finalPrompt = pageContent
     ? `${prompt}\n\n--- PAGE CONTENT START ---\n${pageContent}\n--- PAGE CONTENT END ---`
     : prompt;
