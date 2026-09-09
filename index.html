@@ -148,6 +148,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,san
 .pts-toggle svg{transition:transform .2s;flex-shrink:0}
 .pts-toggle.open svg{transform:rotate(180deg)}
 .pts-panel{display:none;margin-bottom:10px;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius)}
+/* redemption log */
+.pts-add-row{display:grid;grid-template-columns:100px 1fr 90px 90px auto;gap:6px;align-items:end;margin-bottom:12px}
+.pts-add-label{font-size:11px;color:var(--text-3);margin-bottom:3px}
+.pts-add-input{width:100%;padding:7px 9px;border:0.5px solid var(--border-med);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-size:12px;font-family:inherit;outline:none}
+.pts-add-btn{padding:7px 12px;background:var(--text);color:var(--bg);border:none;border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+.pts-log{border-top:0.5px solid var(--border);margin-top:10px;padding-top:8px}
+.pts-log-title{font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+.pts-redemption-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:0.5px solid var(--border)}
+.pts-redemption-row:last-child{border-bottom:none}
+.pts-redemption-left{flex:1;min-width:0}
+.pts-redemption-date{font-size:11px;color:var(--text-3);display:block;margin-bottom:1px}
+.pts-redemption-desc{font-size:13px;color:var(--text);font-weight:500}
+.pts-redemption-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.pts-redemption-pts{font-size:12px;color:var(--text-2)}
+.pts-redemption-val{font-size:13px;font-weight:600}
+.pts-redemption-del{background:none;border:none;color:var(--text-3);font-size:16px;cursor:pointer;padding:0 2px;line-height:1;-webkit-tap-highlight-color:transparent}
+.pts-redemption-del:hover{color:#c0392b}
+.pts-totals-row{display:flex;justify-content:flex-end;gap:16px;padding-top:8px;margin-top:4px;border-top:0.5px solid var(--border)}
+.pts-total-item{font-size:12px;color:var(--text-2)}
+.pts-total-item strong{color:var(--text)}
 .pts-panel.open{display:block}
 .pts-panel-inner{padding:.85rem 1rem}
 .pts-fields{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
@@ -282,6 +302,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,san
 
   /* Points tracker: stack fields vertically */
   .pts-fields{grid-template-columns:1fr}
+  .pts-add-row{grid-template-columns:1fr 1fr}
   .pts-input{font-size:13px}
   .pts-prefix{font-size:11px}
 
@@ -874,50 +895,115 @@ function summaryHTML_single(t,c,fee,ptsDollar,lounge){
     <div class="sum-card"><div class="sum-label">Points value redeemed</div><div class="sum-val" style="color:#E8940A">${fmtVal(ptsDollar)}</div><div class="sum-sub">from points redemptions</div></div>`;
 }
 
-const PK="cbt_points_v7";
-let pointsData = tryParse(localStorage.getItem(PK), {}); // {cardKey: {earned, used, dollarVal}}
-function savePoints(){try{localStorage.setItem(PK,JSON.stringify(pointsData))}catch{}}
-function getPoints(k){return pointsData[k]||{earned:'',used:'',dollarVal:''}}
-function setPoints(k,field,val){
-  if(!pointsData[k])pointsData[k]={earned:'',used:'',dollarVal:''};
-  pointsData[k][field]=val;
+const PK="cbt_points_v8"; // v8: individual redemption log
+// Structure: {cardKey: {earned: number, redemptions: [{id, date, desc, pts, dollars}]}}
+let pointsData = tryParse(localStorage.getItem(PK), {});
+
+// Migrate old v7 data if present
+const oldPK = localStorage.getItem("cbt_points_v7");
+if(oldPK){
+  const old = tryParse(oldPK, {});
+  Object.keys(old).forEach(k => {
+    if(!pointsData[k]){
+      const d = old[k];
+      const used = parseInt((d.used||'').replace(/,/g,''))||0;
+      const dv = parseFloat((d.dollarVal||'').replace(/[$,]/g,''))||0;
+      pointsData[k] = {
+        earned: parseInt((d.earned||'').replace(/,/g,''))||0,
+        redemptions: used||dv ? [{id:Date.now(),date:'',desc:'Previous redemptions',pts:used,dollars:dv}] : []
+      };
+    }
+  });
   savePoints();
-  updatePtsSummary(k);
-  // refresh the summary tiles so Points Value tile stays current
-  const cards=allCards();
-  const keys=cardKeys();
-  const totAll=keys.reduce((s,k)=>s+cardTotal(k),0);
-  const clAll=keys.reduce((s,k)=>s+cardClaimed(k),0);
-  const feeAll=keys.reduce((s,k)=>s+cards[k].fee,0);
-  const sumEl=document.getElementById('summary');
-  if(!sumEl)return;
-  if(activeTab==="all"){
-    const ptsDollarAll=totalPointsDollar(keys);
-    const loungeAll=totalLoungeValue(keys);
-    sumEl.innerHTML=summaryHTML_all(totAll,clAll,feeAll,ptsDollarAll,loungeAll,keys.length);
-  } else {
-    const t=cardTotal(activeTab),c=cardClaimed(activeTab),fee=cards[activeTab].fee;
-    const ptsDollar=totalPointsDollar([activeTab]);
-    const lounge=totalLoungeValue([activeTab]);
-    sumEl.innerHTML=summaryHTML_single(t,c,fee,ptsDollar,lounge);
-  }
 }
-function updatePtsSummary(k){
+
+function savePoints(){try{localStorage.setItem(PK,JSON.stringify(pointsData))}catch{}}
+function getPoints(k){return pointsData[k]||{earned:0,redemptions:[]}}
+
+function setPointsEarned(k,val){
+  if(!pointsData[k])pointsData[k]={earned:0,redemptions:[]};
+  pointsData[k].earned=parseInt(val)||0;
+  savePoints();
+  refreshSummary();
   const el=document.getElementById(`pts_summary_${k}`);
-  if(!el)return;
+  if(el)renderPtsSummaryInner(k,el);
+}
+
+function addRedemption(k){
+  const dateEl=document.getElementById(`pts_date_${k}`);
+  const descEl=document.getElementById(`pts_desc_${k}`);
+  const ptsEl=document.getElementById(`pts_pts_${k}`);
+  const dolEl=document.getElementById(`pts_dol_${k}`);
+  const pts=parseInt(ptsEl?.value)||0;
+  const dollars=parseFloat(dolEl?.value)||0;
+  if(!pts&&!dollars)return;
+  if(!pointsData[k])pointsData[k]={earned:0,redemptions:[]};
+  pointsData[k].redemptions.push({
+    id:Date.now(),
+    date:dateEl?.value||'',
+    desc:descEl?.value||'',
+    pts,dollars
+  });
+  savePoints();
+  // clear inputs
+  if(dateEl)dateEl.value='';
+  if(descEl)descEl.value='';
+  if(ptsEl)ptsEl.value='';
+  if(dolEl)dolEl.value='';
+  refreshSummary();
+  // re-render just the log
+  const logEl=document.getElementById(`pts_log_${k}`);
+  if(logEl)logEl.innerHTML=renderPtsLog(k);
+  const el=document.getElementById(`pts_summary_${k}`);
+  if(el)renderPtsSummaryInner(k,el);
+}
+
+function deleteRedemption(k,id){
+  if(!pointsData[k])return;
+  pointsData[k].redemptions=pointsData[k].redemptions.filter(r=>r.id!==id);
+  savePoints();
+  refreshSummary();
+  const logEl=document.getElementById(`pts_log_${k}`);
+  if(logEl)logEl.innerHTML=renderPtsLog(k);
+  const el=document.getElementById(`pts_summary_${k}`);
+  if(el)renderPtsSummaryInner(k,el);
+}
+
+function renderPtsLog(k){
   const d=getPoints(k);
   const cards=allCards();
   const card=cards[k];
-  const earned=parseInt((d.earned||'').replace(/,/g,''))||0;
-  const used=parseInt((d.used||'').replace(/,/g,''))||0;
-  const bal=earned-used;
-  const dv=parseFloat((d.dollarVal||'').replace(/[$,]/g,''))||0;
-  if(!earned&&!used&&!dv){el.style.display='none';return;}
+  if(!d.redemptions||d.redemptions.length===0){
+    return `<div style="font-size:12px;color:var(--text-3);text-align:center;padding:12px 0">No redemptions logged yet</div>`;
+  }
+  return d.redemptions.map(r=>`
+    <div class="pts-redemption-row">
+      <div class="pts-redemption-left">
+        ${r.date?`<span class="pts-redemption-date">${r.date}</span>`:''}
+        <span class="pts-redemption-desc">${r.desc||'Redemption'}</span>
+      </div>
+      <div class="pts-redemption-right">
+        ${r.pts?`<span class="pts-redemption-pts">${fmtPts(r.pts)} pts</span>`:''}
+        ${r.dollars?`<span class="pts-redemption-val" style="color:${card.color}">$${r.dollars.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2})}</span>`:''}
+        <button class="pts-redemption-del" onclick="deleteRedemption('${k}',${r.id})" title="Delete">×</button>
+      </div>
+    </div>`).join('');
+}
+
+function renderPtsSummaryInner(k,el){
+  const d=getPoints(k);
+  const cards=allCards();
+  const card=cards[k];
+  const totalUsed=d.redemptions?.reduce((s,r)=>s+(r.pts||0),0)||0;
+  const totalDollar=d.redemptions?.reduce((s,r)=>s+(r.dollars||0),0)||0;
+  const bal=(d.earned||0)-totalUsed;
+  const hasData=d.earned||totalUsed||totalDollar;
+  if(!hasData){el.style.display='none';return;}
   el.style.display='flex';
   const balColor=bal>=0?card.color:'#c0392b';
   el.innerHTML=`
     <span>Balance: <strong style="color:${balColor}">${fmtPts(bal)} pts</strong></span>
-    ${dv>0?`<span class="pts-chip" style="background:${card.bg};color:${card.color}">$${dv.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2})} redeemed</span>`:''}`;
+    ${totalDollar>0?`<span class="pts-chip" style="background:${card.bg};color:${card.color}">$${totalDollar.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2})} redeemed</span>`:''}`;
 }
 function fmtPts(n){return Math.abs(n).toLocaleString()+(n<0?' (overspent)':'')}
 let openPts={};
@@ -1092,50 +1178,75 @@ function renderPerksPanel(k,card){
 
 function renderPtsPanel(k,card){
   const d=getPoints(k);
-  const earned=parseInt((d.earned||'').replace(/,/g,''))||0;
-  const used=parseInt((d.used||'').replace(/,/g,''))||0;
-  const bal=earned-used;
-  const dv=parseFloat((d.dollarVal||'').replace(/[$,]/g,''))||0;
-  const hasData=d.earned||d.used||d.dollarVal;
+  const totalUsed=d.redemptions?.reduce((s,r)=>s+(r.pts||0),0)||0;
+  const totalDollar=d.redemptions?.reduce((s,r)=>s+(r.dollars||0),0)||0;
+  const bal=(d.earned||0)-totalUsed;
+  const hasData=d.earned||totalUsed||totalDollar;
   const balColor=bal>=0?card.color:'#c0392b';
+
   const summaryHTML=`<div class="pts-summary" id="pts_summary_${k}" style="display:${hasData?'flex':'none'}">
     <span>Balance: <strong style="color:${balColor}">${fmtPts(bal)} pts</strong></span>
-    ${dv>0?`<span class="pts-chip" style="background:${card.bg};color:${card.color}">$${dv.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2})} redeemed</span>`:''}
+    ${totalDollar>0?`<span class="pts-chip" style="background:${card.bg};color:${card.color}">$${totalDollar.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2})} redeemed</span>`:''}
   </div>`;
+
+  const totalsRow=d.redemptions?.length?`<div class="pts-totals-row">
+    <span class="pts-total-item">Total pts used: <strong>${fmtPts(totalUsed)}</strong></span>
+    <span class="pts-total-item">Total value: <strong style="color:${card.color}">$${totalDollar.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2})}</strong></span>
+  </div>`:'';
+
   return `
   <button class="pts-toggle ${openPts[k]?'open':''}" id="ptt_${k}" onclick="togglePts('${k}')">
     <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    Points tracker
+    Points tracker ${totalDollar>0?`<span class="pts-chip" style="background:${card.bg};color:${card.color};margin-left:6px;font-size:11px">$${totalDollar.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0})} redeemed</span>`:''}
   </button>
   <div class="pts-panel ${openPts[k]?'open':''}" id="ptp_${k}">
     <div class="pts-panel-inner">
-      <div class="pts-fields">
-        <div class="pts-field">
-          <div class="pts-label">Points earned</div>
-          <div class="pts-input-wrap">
+
+      <!-- Points earned -->
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <div style="flex:1">
+          <div class="pts-label">Total points earned (your current balance from card)</div>
+          <div class="pts-input-wrap" style="margin-top:4px">
             <span class="pts-prefix">pts</span>
-            <input class="pts-input" type="number" min="0" placeholder="0" value="${d.earned||''}"
-              oninput="setPoints('${k}','earned',this.value)" />
+            <input class="pts-input" type="number" min="0" placeholder="0" value="${d.earned||0}"
+              oninput="setPointsEarned('${k}',this.value)" />
           </div>
         </div>
-        <div class="pts-field">
-          <div class="pts-label">Points used</div>
-          <div class="pts-input-wrap">
-            <span class="pts-prefix">pts</span>
-            <input class="pts-input" type="number" min="0" placeholder="0" value="${d.used||''}"
-              oninput="setPoints('${k}','used',this.value)" />
-          </div>
+        ${summaryHTML}
+      </div>
+
+      <!-- Add redemption -->
+      <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:8px">Log a redemption</div>
+      <div class="pts-add-row">
+        <div>
+          <div class="pts-add-label">Date</div>
+          <input type="date" id="pts_date_${k}" class="pts-add-input" />
         </div>
-        <div class="pts-field">
-          <div class="pts-label">Dollar value redeemed</div>
-          <div class="pts-input-wrap">
-            <span class="pts-prefix">$</span>
-            <input class="pts-input" type="number" min="0" step="0.01" placeholder="0.00" value="${d.dollarVal||''}"
-              oninput="setPoints('${k}','dollarVal',this.value)" />
-          </div>
+        <div>
+          <div class="pts-add-label">Description</div>
+          <input type="text" id="pts_desc_${k}" class="pts-add-input" placeholder="e.g. Flight to NYC" maxlength="60"/>
+        </div>
+        <div>
+          <div class="pts-add-label">Points used</div>
+          <input type="number" id="pts_pts_${k}" class="pts-add-input" placeholder="0" min="0"/>
+        </div>
+        <div>
+          <div class="pts-add-label">Dollar value</div>
+          <input type="number" id="pts_dol_${k}" class="pts-add-input" placeholder="0.00" min="0" step="0.01"/>
+        </div>
+        <div>
+          <div class="pts-add-label">&nbsp;</div>
+          <button class="pts-add-btn" onclick="addRedemption('${k}')">+ Add</button>
         </div>
       </div>
-      ${summaryHTML}
+
+      <!-- Redemption log -->
+      <div class="pts-log">
+        <div class="pts-log-title">Redemption history</div>
+        <div id="pts_log_${k}">${renderPtsLog(k)}</div>
+        ${totalsRow}
+      </div>
+
     </div>
   </div>`;
 }
@@ -1143,7 +1254,7 @@ function renderPtsPanel(k,card){
 function totalPointsDollar(keys){
   return keys.reduce((s,k)=>{
     const d=getPoints(k);
-    return s+(parseFloat((d.dollarVal||'').replace(/[$,]/g,''))||0);
+    return s+(d.redemptions?.reduce((r,e)=>r+(e.dollars||0),0)||0);
   },0);
 }
 
