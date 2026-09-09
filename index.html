@@ -908,25 +908,38 @@ if(oldPK){
       const d = old[k];
       const used = parseInt((d.used||'').replace(/,/g,''))||0;
       const dv = parseFloat((d.dollarVal||'').replace(/[$,]/g,''))||0;
-      pointsData[k] = {
-        earned: parseInt((d.earned||'').replace(/,/g,''))||0,
-        redemptions: used||dv ? [{id:Date.now(),date:'',desc:'Previous redemptions',pts:used,dollars:dv}] : []
-      };
+      const oldEarned=parseInt((d.earned||'').replace(/,/g,''))||0;
+        const oldUsed=parseInt((d.used||'').replace(/,/g,''))||0;
+        const oldDv=parseFloat((d.dollarVal||'').replace(/[$,]/g,''))||0;
+        pointsData[k] = {
+          balance: Math.max(0,oldEarned-oldUsed), // balance = earned - used
+          redemptions: oldUsed||oldDv ? [{id:Date.now(),date:'',desc:'Previous redemptions',pts:oldUsed,dollars:oldDv}] : []
+        };
     }
   });
   savePoints();
 }
 
 function savePoints(){try{localStorage.setItem(PK,JSON.stringify(pointsData))}catch{}}
-function getPoints(k){return pointsData[k]||{earned:0,redemptions:[]}}
+function getPoints(k){return pointsData[k]||{balance:0,redemptions:[]}}
 
-function setPointsEarned(k,val){
-  if(!pointsData[k])pointsData[k]={earned:0,redemptions:[]};
-  pointsData[k].earned=parseInt(val)||0;
+function setCurrentBalance(k,val){
+  if(!pointsData[k])pointsData[k]={balance:0,redemptions:[]};
+  pointsData[k].balance=parseInt(val)||0;
   savePoints();
   refreshSummary();
   const el=document.getElementById(`pts_summary_${k}`);
   if(el)renderPtsSummaryInner(k,el);
+}
+
+function getTotalUsed(k){
+  return (pointsData[k]?.redemptions||[]).reduce((s,r)=>s+(r.pts||0),0);
+}
+
+function getTotalEarned(k){
+  const bal=pointsData[k]?.balance||0;
+  const used=getTotalUsed(k);
+  return bal+used;
 }
 
 function addRedemption(k){
@@ -994,15 +1007,16 @@ function renderPtsSummaryInner(k,el){
   const d=getPoints(k);
   const cards=allCards();
   const card=cards[k];
-  const totalUsed=d.redemptions?.reduce((s,r)=>s+(r.pts||0),0)||0;
+  const totalUsed=getTotalUsed(k);
   const totalDollar=d.redemptions?.reduce((s,r)=>s+(r.dollars||0),0)||0;
-  const bal=(d.earned||0)-totalUsed;
-  const hasData=d.earned||totalUsed||totalDollar;
+  const bal=d.balance||0;
+  const totalEarned=bal+totalUsed;
+  const hasData=bal||totalUsed||totalDollar;
   if(!hasData){el.style.display='none';return;}
   el.style.display='flex';
-  const balColor=bal>=0?card.color:'#c0392b';
   el.innerHTML=`
-    <span>Balance: <strong style="color:${balColor}">${fmtPts(bal)} pts</strong></span>
+    <span style="color:${card.color};font-weight:600">${fmtPts(bal)} pts balance</span>
+    ${totalEarned?`<span style="font-size:11px;color:var(--text-3)">${fmtPts(totalEarned)} earned total</span>`:''}
     ${totalDollar>0?`<span class="pts-chip" style="background:${card.bg};color:${card.color}">$${totalDollar.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2})} redeemed</span>`:''}`;
 }
 function fmtPts(n){return Math.abs(n).toLocaleString()+(n<0?' (overspent)':'')}
@@ -1178,14 +1192,14 @@ function renderPerksPanel(k,card){
 
 function renderPtsPanel(k,card){
   const d=getPoints(k);
-  const totalUsed=d.redemptions?.reduce((s,r)=>s+(r.pts||0),0)||0;
+  const totalUsed=getTotalUsed(k);
   const totalDollar=d.redemptions?.reduce((s,r)=>s+(r.dollars||0),0)||0;
-  const bal=(d.earned||0)-totalUsed;
-  const hasData=d.earned||totalUsed||totalDollar;
-  const balColor=bal>=0?card.color:'#c0392b';
-
+  const bal=d.balance||0;
+  const totalEarned=bal+totalUsed;
+  const hasData=bal||totalUsed||totalDollar;
   const summaryHTML=`<div class="pts-summary" id="pts_summary_${k}" style="display:${hasData?'flex':'none'}">
-    <span>Balance: <strong style="color:${balColor}">${fmtPts(bal)} pts</strong></span>
+    <span style="color:${card.color};font-weight:600">${fmtPts(bal)} pts balance</span>
+    ${totalEarned?`<span style="font-size:11px;color:var(--text-3)">${fmtPts(totalEarned)} earned total</span>`:''}
     ${totalDollar>0?`<span class="pts-chip" style="background:${card.bg};color:${card.color}">$${totalDollar.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2})} redeemed</span>`:''}
   </div>`;
 
@@ -1202,15 +1216,16 @@ function renderPtsPanel(k,card){
   <div class="pts-panel ${openPts[k]?'open':''}" id="ptp_${k}">
     <div class="pts-panel-inner">
 
-      <!-- Points earned -->
+      <!-- Current balance -->
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
         <div style="flex:1">
-          <div class="pts-label">Total points earned (your current balance from card)</div>
+          <div class="pts-label">Current points balance <span style="font-weight:400;color:var(--text-3)">(from your card's app)</span></div>
           <div class="pts-input-wrap" style="margin-top:4px">
             <span class="pts-prefix">pts</span>
-            <input class="pts-input" type="number" min="0" placeholder="0" value="${d.earned||0}"
-              oninput="setPointsEarned('${k}',this.value)" />
+            <input class="pts-input" type="number" min="0" placeholder="0" value="${d.balance||0}"
+              oninput="setCurrentBalance('${k}',this.value)" />
           </div>
+          ${(d.balance||0)||(getTotalUsed(k))?`<div style="font-size:11px;color:var(--text-3);margin-top:4px">Total earned: ${fmtPts((d.balance||0)+getTotalUsed(k))} pts (balance + redeemed)</div>`:''}
         </div>
         ${summaryHTML}
       </div>
